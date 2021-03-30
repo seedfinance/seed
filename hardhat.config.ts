@@ -1,18 +1,16 @@
-//import 'dotenv/config'
-//import "@nomiclabs/hardhat-waffle";
-//import '@nomiclabs/hardhat-solhint'
-//import "hardhat-gas-reporter";
-require("hardhat-spdx-license-identifier");
-//import 'hardhat-deploy'
-//import "hardhat-deploy-ethers";
-//import { HardhatUserConfig } from "hardhat/types";
-/*
+import 'dotenv/config'
+import "@nomiclabs/hardhat-waffle";
+import '@nomiclabs/hardhat-solhint'
+import "hardhat-gas-reporter";
+import "hardhat-spdx-license-identifier";
+import 'hardhat-deploy'
+import "hardhat-deploy-ethers";
+import { HardhatUserConfig } from "hardhat/types";
+
 const accounts = [
   process.env.PRIVATEKEY
 ]
-*/
-
-module.exports = {
+const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
   namedAccounts: {
     deployer: {
@@ -25,15 +23,20 @@ module.exports = {
   networks: {
     mainnet: {
       url: `https://http-mainnet-node.huobichain.com`,
-      //accounts: accounts,
+      accounts,
       gasPrice: 1.3 * 1000000000,
       chainId: 128,
     },
     testnet: {
       url: `https://http-testnet.hecochain.com`,
-      //accounts: accounts,
+      accounts,
       gasPrice: 1 * 1000000000,
       chainId: 256,
+    },
+    localhost: {
+      live: false,
+      saveDeployments: true,
+      tags: ["local"],
     },
     hardhat: {
       forking: {
@@ -46,6 +49,13 @@ module.exports = {
     },
   },
   paths: {
+    artifacts: "artifacts",
+    cache: "cache",
+    deploy: "deploy",
+    deployments: "deployments",
+    imports: "imports",
+    sources: "contracts",
+    tests: "test",
   },
   solidity: {
     compilers: [
@@ -61,8 +71,8 @@ module.exports = {
     ],
   },
   spdxLicenseIdentifier: {
-    overwrite: true,
+    overwrite: false,
     runOnCompile: true,
   },
 };
-//export default config;
+export default config;

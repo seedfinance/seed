@@ -9,16 +9,16 @@ module.exports = async ({
 	const {deployer} = await getNamedAccounts();
 
 	// console.log("deployer:", deployer)
-	const { address } = await deploy('Storage', {
+	const { address } = await deploy('AdminStorage', {
 	  from: deployer,
-	  contract: 'Storage',
+	  contract: 'AdminStorage',
 	  gasLimit: 4000000,
 	  args: [],
 		log: true,
 		deterministicDeployment: false
 	});
 
-	console.log('deployed Storage:', address)
+	console.log('deployed AdminStorage:', address)
 };
 
-module.exports.tags = ["Storage"]
+module.exports.tags = ["AdminStorage"]
