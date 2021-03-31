@@ -6,16 +6,14 @@ describe("Factory", () => {
     this.FactoryDelegator = await ethers.getContractFactory("FactoryDelegator")
     this.FactoryDelegate = await ethers.getContractFactory("FactoryDelegate")
     this.signers = await ethers.getSigners()
-    this.alice = this.signers[0]
-    this.bob = this.signers[1]
-    this.carol = this.signers[2]
-    this.dave = this.signers[3]
-    this.eve = this.signers[4]
+    ;[this.alice, this.bob, this.carol, this.dave, this.eve, this.isaac] = await ethers.getSigners()
+
     console.log("alice:", this.alice.address)
     console.log("bob:", this.bob.address)
     console.log("carol:", this.carol.address)
     console.log("dave:", this.dave.address)
     console.log("eve:", this.eve.address)
+    console.log("isaac:", this.isaac.address)
   })
 
   beforeEach(async function () {

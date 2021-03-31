@@ -1,11 +1,13 @@
-import 'dotenv/config'
-import "@nomiclabs/hardhat-waffle";
+import "dotenv/config"
+import "@nomiclabs/hardhat-waffle"
 import '@nomiclabs/hardhat-solhint'
 import "hardhat-gas-reporter";
-import "hardhat-spdx-license-identifier";
-import 'hardhat-deploy'
-import "hardhat-deploy-ethers";
-import { HardhatUserConfig } from "hardhat/types";
+import "hardhat-spdx-license-identifier"
+import "hardhat-deploy"
+import "hardhat-deploy-ethers"
+import "hardhat-contract-sizer"
+import "solidity-coverage"
+import { HardhatUserConfig } from "hardhat/types"
 
 const accounts = [
   process.env.PRIVATEKEY

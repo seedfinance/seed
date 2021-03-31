@@ -3,15 +3,16 @@ import { expect } from "chai"
 
 describe("Retrieve", () => {
   before(async function () {
+    this.ChangeExecutor = 0
+    this.AddFriend = 1
+    this.RemoveFriend = 2
+    this.chainId = (await ethers.provider.getNetwork()).chainId
+
     this.FactoryDelegator = await ethers.getContractFactory("FactoryDelegator")
     this.FactoryDelegate = await ethers.getContractFactory("FactoryDelegate")
     this.signers = await ethers.getSigners()
-    this.alice = this.signers[0]
-    this.bob = this.signers[1]
-    this.carol = this.signers[2]
-    this.dave = this.signers[3]
-    this.eve = this.signers[4]
-    this.isaac = this.signers[5]
+    ;[this.alice, this.bob, this.carol, this.dave, this.eve, this.isaac] = await ethers.getSigners()
+
     console.log("alice:", this.alice.address)
     console.log("bob:", this.bob.address)
     console.log("carol:", this.carol.address)
@@ -59,17 +60,14 @@ describe("Retrieve", () => {
     expect(balance2.sub(balance)).equal(sendValue)
   })
   it("Retrieve ChangeExecutor propose", async function () {
-    const ChangeExecutor = 0
-    const AddFriend = 1
-    const RemoveFriend = 2
     const eta = Math.floor(Date.now() / 1000) + 100
-    let tx = await (await this.retrieveContract.connect(this.carol).propose(this.isaac.address, ChangeExecutor, eta)).wait()
+    let tx = await (await this.retrieveContract.connect(this.carol).propose(this.isaac.address, this.ChangeExecutor, eta)).wait()
     let proposeId = tx.events?.filter((x) => {
       return x.event == "ProposalCreated"
     })[0].args[0]
     const propose = await this.retrieveContract.proposals(proposeId)
     expect(propose["id"]).equal(proposeId)
-    expect(propose["executeType"]).equal(ChangeExecutor)
+    expect(propose["executeType"]).equal(this.ChangeExecutor)
     expect(propose["target"]).equal(this.isaac.address)
     expect(propose["proposer"]).equal(this.carol.address)
     expect(propose["eta"]).equal(eta)
@@ -98,17 +96,14 @@ describe("Retrieve", () => {
   })
 
   it("Retrieve AddFriend propose", async function () {
-    const ChangeExecutor = 0
-    const AddFriend = 1
-    const RemoveFriend = 2
     const eta = Math.floor(Date.now() / 1000) + 100
-    let tx = await (await this.retrieveContract.connect(this.carol).propose(this.isaac.address, AddFriend, eta)).wait()
+    let tx = await (await this.retrieveContract.connect(this.carol).propose(this.isaac.address, this.AddFriend, eta)).wait()
     let proposeId = tx.events?.filter((x) => {
       return x.event == "ProposalCreated"
     })[0].args[0]
     const propose = await this.retrieveContract.proposals(proposeId)
     expect(propose["id"]).equal(proposeId)
-    expect(propose["executeType"]).equal(AddFriend)
+    expect(propose["executeType"]).equal(this.AddFriend)
     expect(propose["target"]).equal(this.isaac.address)
     expect(propose["proposer"]).equal(this.carol.address)
     expect(propose["eta"]).equal(eta)
@@ -137,5 +132,83 @@ describe("Retrieve", () => {
 
     expect(await this.retrieveContract.getFriends()).to.have.lengthOf(4)
     expect(await this.retrieveContract.getFriends()).to.include(this.isaac.address)
+  })
+
+  it("Retrieve RemoveFriend propose", async function () {
+    const eta = Math.floor(Date.now() / 1000) + 100
+    let tx = await (await this.retrieveContract.connect(this.carol).propose(this.carol.address, this.RemoveFriend, eta)).wait()
+    let proposeId = tx.events?.filter((x) => {
+      return x.event == "ProposalCreated"
+    })[0].args[0]
+    const propose = await this.retrieveContract.proposals(proposeId)
+    expect(propose["id"]).equal(proposeId)
+    expect(propose["executeType"]).equal(this.RemoveFriend)
+    expect(propose["target"]).equal(this.carol.address)
+    expect(propose["proposer"]).equal(this.carol.address)
+    expect(propose["eta"]).equal(eta)
+    expect(await this.retrieveContract.state(proposeId)).equal(0)
+    // console.log(await this.retrieveContract.state(proposeId), (await this.retrieveContract.proposals(proposeId))["forVotes"])
+
+    // castVote
+    await this.retrieveContract.connect(this.carol).castVote(proposeId)
+    expect(await this.retrieveContract.state(proposeId)).equal(0)
+    // console.log(await this.retrieveContract.state(proposeId), (await this.retrieveContract.proposals(proposeId))["forVotes"])
+
+    await this.retrieveContract.connect(this.dave).castVote(proposeId)
+    expect(await this.retrieveContract.state(proposeId)).equal(1)
+    // console.log(await this.retrieveContract.state(proposeId), (await this.retrieveContract.proposals(proposeId))["forVotes"])
+
+    // execute
+    expect(await this.retrieveContract.getFriends()).to.have.lengthOf(3)
+    await this.retrieveContract.execute(proposeId)
+    expect(await this.retrieveContract.getFriends()).to.have.lengthOf(2)
+    expect(await this.retrieveContract.getFriends()).to.not.include(this.carol.address)
+  })
+
+  it("Retrieve votesign propose", async function () {
+    const eta = Math.floor(Date.now() / 1000) + 100
+    let tx = await (await this.retrieveContract.connect(this.carol).propose(this.carol.address, this.RemoveFriend, eta)).wait()
+    let proposeId = tx.events?.filter((x) => {
+      return x.event == "ProposalCreated"
+    })[0].args[0]
+    const propose = await this.retrieveContract.proposals(proposeId)
+    expect(propose["id"]).equal(proposeId)
+    expect(propose["executeType"]).equal(this.RemoveFriend)
+    expect(propose["target"]).equal(this.carol.address)
+    expect(propose["proposer"]).equal(this.carol.address)
+    expect(propose["eta"]).equal(eta)
+    expect(await this.retrieveContract.state(proposeId)).equal(0)
+    // console.log(await this.retrieveContract.state(proposeId), (await this.retrieveContract.proposals(proposeId))["forVotes"])
+
+    // castVote
+    const domain = {
+      name: "RetrieveV1",
+      chainId: this.chainId,
+      verifyingContract: this.retrieveContract.address,
+    }
+
+    const types = {
+      Ballot: [{ name: "proposalId", type: "uint256" }],
+    }
+    const value = {
+      proposalId: proposeId,
+    }
+
+    const carolSignTypedData = ethers.utils.splitSignature(await this.carol._signer._signTypedData(domain, types, value))
+    const daveSignTypedData = ethers.utils.splitSignature(await this.dave._signer._signTypedData(domain, types, value))
+
+    await this.retrieveContract.connect(this.carol).castVoteBySig(proposeId, carolSignTypedData.v, carolSignTypedData.r, carolSignTypedData.s)
+    expect(await this.retrieveContract.state(proposeId)).equal(0)
+    // console.log(await this.retrieveContract.state(proposeId), (await this.retrieveContract.proposals(proposeId))["forVotes"])
+
+    await this.retrieveContract.connect(this.dave).castVoteBySig(proposeId, daveSignTypedData.v, daveSignTypedData.r, daveSignTypedData.s)
+    expect(await this.retrieveContract.state(proposeId)).equal(1)
+    // console.log(await this.retrieveContract.state(proposeId), (await this.retrieveContract.proposals(proposeId))["forVotes"])
+
+    // execute
+    expect(await this.retrieveContract.getFriends()).to.have.lengthOf(3)
+    await this.retrieveContract.execute(proposeId)
+    expect(await this.retrieveContract.getFriends()).to.have.lengthOf(2)
+    expect(await this.retrieveContract.getFriends()).to.not.include(this.carol.address)
   })
 })
