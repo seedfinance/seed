@@ -13,8 +13,7 @@ module.exports = async ({
   } = await getNamedAccounts();
 
 
-	const storage = await deployments.get("Storage")
-  const roleList = await ethers.getContract("RoleList")
+	const storage = await deployments.get("AdminStorage")
   const chainId = await getChainId()
   console.log("deployer:", deployer, 'chainId:', chainId)
 
@@ -37,7 +36,7 @@ module.exports = async ({
       from: deployer,
       contract: "VaultERC2612",
       gasLimit: 4000000,
-      args: [storage.address, ERC20Token[k], roleList.address],
+      args: [storage.address, ERC20Token[k]],
       log: true,
       deterministicDeployment: false
     })
@@ -45,25 +44,7 @@ module.exports = async ({
     console.log('deployed SToken:', sToken.address, 'from:', k, ERC20Token[k])
     // const sTokenABI = await ethers.getContractAt("VaultERC2612", sToken.address)
 
-
-
-    await (await roleList.add(sToken.address)).wait()
-
-    const xToken = await deploy(k + '\'sBar', {
-      from: deployer,
-      contract: "XTokenBar",
-      gasLimit: 4000000,
-      args: [storage.address, sToken.address, roleList.address],
-      log: true,
-      deterministicDeployment: false
-    })
-
-    console.log('deployed xToken', xToken.address, 'from:', k, ERC20Token[k])
-    await (await roleList.add(xToken.address)).wait()
-
-    // const xTokenABI = await ethers.getContractAt("XTokenBar", xToken.address)
-
   }
 };
 
-module.exports.dependencies = ["RoleList"]
+module.exports.dependencies = ["AdminStorage"]

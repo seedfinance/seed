@@ -11,7 +11,7 @@ contract VaultHT is Adminable, ERC2612, IVault {
     using SafeMath for uint256;
     ERC20 public underlying; //WHT
 
-    constructor(address storage_, ERC20 underlying_) 
+    constructor(address storage_, ERC20 underlying_)
         ERC2612(
             storage_,
             string(abi.encodePacked("s", underlying_.name())),
@@ -30,5 +30,4 @@ contract VaultHT is Adminable, ERC2612, IVault {
     function withdraw(uint256 amount) external override {
         msg.sender.transfer(amount);
     }
-
 }

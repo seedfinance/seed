@@ -9,19 +9,16 @@ module.exports = async ({
 	const {deployer} = await getNamedAccounts();
 
 	// console.log("deployer:", deployer)
-
-	const storage = await deployments.get("Storage")
-	const { address } = await deploy('RoleList', {
+	const { address } = await deploy('Retrieve', {
 	  from: deployer,
-	  contract: 'RoleList',
+	  contract: 'Retrieve',
 	  gasLimit: 4000000,
-	  args: [storage.address],
+	  args: [],
 		log: true,
 		deterministicDeployment: false
 	});
 
-	console.log('deployed roleList:', address)
+	console.log('deployed Retrieve:', address)
 };
 
-module.exports.tags = ["RoleList"]
-module.exports.dependencies = ["Storage"]
+module.exports.dependencies = ["AdminStorage"]
