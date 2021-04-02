@@ -7,7 +7,7 @@ import "../interface/IVault.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
-contract VaultERC2612 is Adminable, ERC2612, IVault {
+contract VaultERC2612 is ERC2612 {
     using SafeMath for uint256;
     ERC20 public underlying;
 
@@ -22,7 +22,7 @@ contract VaultERC2612 is Adminable, ERC2612, IVault {
         underlying = underlying_;
     }
 
-    function deposit(uint256 amount) external payable override {
+    function deposit(uint256 amount) external payable {
         require(msg.value == 0, "contract donot accept HT");
         uint256 balanceBefore = underlying.balanceOf(address(this));
         underlying.transferFrom(msg.sender, address(this), amount);
@@ -50,7 +50,7 @@ contract VaultERC2612 is Adminable, ERC2612, IVault {
         _mint(msg.sender, amount);
     }
 
-    function withdraw(uint256 amount) external override {
+    function withdraw(uint256 amount) external {
         uint256 balanceBefore = underlying.balanceOf(address(this));
         underlying.transfer(msg.sender, amount);
         bool success;

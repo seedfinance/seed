@@ -2,6 +2,7 @@
 
 pragma solidity >=0.7.2;
 import "../admin/Adminable.sol";
+import "../interface/IERC2612.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 

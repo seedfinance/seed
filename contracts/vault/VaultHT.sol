@@ -7,7 +7,7 @@ import "../interface/IVault.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
-contract VaultHT is Adminable, ERC2612, IVault {
+contract VaultHT is Adminable, ERC2612 {
     using SafeMath for uint256;
     ERC20 public underlying; //WHT
 
@@ -22,12 +22,12 @@ contract VaultHT is Adminable, ERC2612, IVault {
         underlying = underlying_;
     }
 
-    function deposit(uint256 amount) external payable override {
+    function deposit(uint256 amount) external payable {
         require(amount == msg.value, "illegal HT amount");
         _mint(msg.sender, msg.value);
     }
 
-    function withdraw(uint256 amount) external override {
+    function withdraw(uint256 amount) external {
         msg.sender.transfer(amount);
     }
 }
