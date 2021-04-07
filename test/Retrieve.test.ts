@@ -10,6 +10,8 @@ describe("Retrieve", () => {
 
     this.FactoryDelegator = await ethers.getContractFactory("FactoryDelegator")
     this.FactoryDelegate = await ethers.getContractFactory("FactoryDelegate")
+    this.AdminStorage = await ethers.getContractFactory("AdminStorage")
+    this.Adminable = await ethers.getContractFactory("Adminable")
     this.signers = await ethers.getSigners()
     ;[this.alice, this.bob, this.carol, this.dave, this.eve, this.isaac] = await ethers.getSigners()
 
@@ -20,9 +22,15 @@ describe("Retrieve", () => {
     console.log("eve:", this.eve.address)
     console.log("isaac:", this.isaac.address)
 
+    this.adminStorage = await this.AdminStorage.deploy()
+    await this.adminStorage.deployed()
+
+    this.adminable = await this.Adminable.deploy(this.adminStorage.address)
+    await this.adminable.deployed()
+
     this.factoryDelegate = await this.FactoryDelegate.deploy()
     await this.factoryDelegate.deployed()
-    this.factoryDelegator = await this.FactoryDelegator.deploy()
+    this.factoryDelegator = await this.FactoryDelegator.deploy(this.adminable.address)
     await this.factoryDelegator.deployed()
     console.log("deployed factoryDelegate", this.factoryDelegate.address)
     console.log("deployed factoryDelegator", this.factoryDelegator.address)

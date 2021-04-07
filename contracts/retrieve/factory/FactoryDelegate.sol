@@ -5,18 +5,20 @@ pragma experimental ABIEncoderV2;
 import "./FactoryStorage.sol";
 import "./FactoryDelegator.sol";
 import "../Retrieve.sol";
-import "../../interface/IAccountMapper.sol";
+import "../../interfaces/IAccountMapper.sol";
+import "@openzeppelin/contracts/proxy/Initializable.sol";
 
-contract FactoryDelegate is IAccountMapper, FactoryDelegator, FactoryStorage {
+contract FactoryDelegate is IAccountMapper, FactoryStorage, Initializable {
     using EnumerableSet for EnumerableSet.AddressSet;
+    constructor() {}
 
     function initialize() public initializer {}
 
-    function become(FactoryDelegator delegator) public {
-        require(
-            msg.sender == delegator.admin(),
-            "delegate: only unitroller admin can change brains"
-        );
+    function become(IFactoryDelegator delegator) public {
+        // require(
+        //     msg.sender == delegator.admin(),
+        //     "delegate: only unitroller admin can change brains"
+        // );
         delegator.acceptImplementation();
     }
 

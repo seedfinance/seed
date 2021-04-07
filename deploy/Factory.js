@@ -7,7 +7,7 @@ module.exports = async ({
   }) => {
 	const {deploy} = deployments;
 	const {deployer} = await getNamedAccounts();
-
+	const storage = await deployments.get("AdminStorage")
 	 await deploy('FactoryDelegate', {
 	  from: deployer,
 	  contract: 'FactoryDelegate',
@@ -24,7 +24,7 @@ module.exports = async ({
         from: deployer,
         contract: 'FactoryDelegator',
         gasLimit: 4000000,
-        args: [],
+        args: [storage.address],
         log: true,
         deterministicDeployment: false
     });
@@ -35,3 +35,4 @@ module.exports = async ({
 	console.log('deployed factoryDelegate:', factoryDelegate.address)
 	console.log('deployed factoryDelegator:', factoryDelegator.address)
 };
+module.exports.dependencies = ["AdminStorage"]

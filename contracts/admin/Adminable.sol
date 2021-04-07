@@ -16,4 +16,12 @@ contract Adminable {
         require(store.isAdmin(msg.sender), "Not admin");
         _;
     }
+
+    function isAdmin(address from) external view returns (bool) {
+        return store.isAdmin(from);
+    }
+
+    function admin() external view returns (address) {
+        return store.admin();
+    }
 }
