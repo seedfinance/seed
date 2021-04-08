@@ -20,4 +20,9 @@ contract AdminableInit is Initializable {
         require(store.isAdmin(msg.sender), "Not admin");
         _;
     }
+
+    modifier onlyAdminOrWorker() {
+        require(store.isAdmin(msg.sender) || store.isWorker(msg.sender), "Not admin or worker");
+        _;
+    }
 }
