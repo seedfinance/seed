@@ -2,14 +2,14 @@
 
 pragma solidity >=0.7.2;
 
-import "../admin/AdminStorage.sol";
+import "../admin/AdminableInit.sol";
 
-contract UserManagerStorage is AdminStorage {
+contract UserManagerStorage is AdminableInit {
     //最小的手续费
-    uint minFee;
+    uint public minFee;
     //除正常执行外,额外扣除的手续费
-    uint additionFee;
-    address feeReceiver;
+    uint public additionFee;
+    address public feeReceiver;
 
     event NewMinFee(uint oldMinFee, uint newMinFee);
 
@@ -36,10 +36,10 @@ contract UserManagerStorage is AdminStorage {
         emit NewFeeReceiver(oldFeeReceiver, newFeeReceiver);
     }
 
-    constructor(uint minFee_, uint additionFee_, address feeReceiver_) {
-        _setMinFee(minFee_);
-        _setAdditionFee(additionFee_);
-        _setFeeReceiver(feeReceiver_);
+    constructor() {}
+
+    function initialize(address _store) public initializer {
+        AdminableInit.initializeAdmin(_store);
     }
 
     function setMinFee(uint newMinFee) external onlyAdmin {

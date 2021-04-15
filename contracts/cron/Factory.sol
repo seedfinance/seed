@@ -7,28 +7,47 @@ import "../interface/IERC2612.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-contract Factory is AdminableInit {
+contract Factory is AdminableInit  {
     using SafeMath for uint256;
 
-    address[] strategys;
-    mapping (address => address) public users;
+    address[] strategyList;
+    address[] userList;
+    mapping (address => address) public userMap;
+    UserManagerStorage userManagerStorage;
 
-    function getStrategyNum() public view returns(uint) {
-        return strategys.length;
+    function setUserManagerStorage(address _userManagerStorage) external onlyAdmin {
+        userManagerStorage = UserManagerStorage(_userManagerStorage);
+    }
+
+    function getStrategyNum() external view returns(uint) {
+        return strategyList.length;
+    }
+
+    function getStrategy(uint _idx) external view returns(address) {
+        return strategyList[_idx];
+    }
+
+    function getUserNum() public view returns(uint) {
+        return userList.length;
+    }
+
+    function userExist(address _user) public view returns (bool) {
+        return userMap[_user] == address(0);
     }
 
     constructor() {}
 
-    function initialize(address _store) public override initializer {
-        AdminableInit.initialize(_store);    
+    function initialize(address _store) public initializer {
+        AdminableInit.initializeAdmin(_store);    
     }
 
-    function createUser() public {
-        require(users[msg.sender] == address(0), "user already created");
+    function createUser() public returns (address) {
+        require(!userExist(msg.sender), "user already created");
         User user = new User(); 
-        users[msg.sender] = address(user);
-        uint len = strategys.length;
-        strategys[len] = address(user);
+        user.initialize(address(this), address(store), address(userManagerStorage));
+        userMap[msg.sender] = address(user);
+        userList.push(address(user));
+        return address(user);
     }
 
 }

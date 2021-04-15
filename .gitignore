@@ -5,6 +5,8 @@ coverage.json
 secret.json
 .DS_Store
 .secret.json
+.secret
+.keystore*
 
 package-lock.json
 

@@ -16,4 +16,5 @@ contract Adminable {
         require(store.isAdmin(msg.sender), "Not admin");
         _;
     }
+
 }
