@@ -1,16 +1,7 @@
-//import 'dotenv/config'
-//import "@nomiclabs/hardhat-waffle";
-//import '@nomiclabs/hardhat-solhint'
-//import "hardhat-gas-reporter";
+require("hardhat-gas-reporter");
 require("hardhat-spdx-license-identifier");
 require('hardhat-deploy');
 require("@nomiclabs/hardhat-ethers");
-//import { HardhatUserConfig } from "hardhat/types";
-/*
-const accounts = [
-  process.env.PRIVATEKEY
-]
-*/
 
 let accounts = [];
 var fs = require("fs");
@@ -60,7 +51,6 @@ const prompt = require('prompt-sync')();
     } catch (ex) {
     }
 })();
-//console.dir(accounts);
 
 module.exports = {
     defaultNetwork: "hardhat",
@@ -77,6 +67,14 @@ module.exports = {
             default: 2,
             128: '0xA8c2f5E3427a94cd8a0BC8d42DdbA574f890E2b4',
         },
+        worker: {
+            default: 3,
+            128: '0xA8c2f5E3427a94cd8a0BC8d42DdbA574f890E2b4',
+        },
+        receiver: {
+            default: 4,
+            128: '0xA8c2f5E3427a94cd8a0BC8d42DdbA574f890E2b4',
+        }
     },
     networks: {
         mainnet: {
@@ -84,7 +82,6 @@ module.exports = {
             accounts: accounts,
             gasPrice: 1.3 * 1000000000,
             chainId: 128,
-            accounts: ['0x164727b7c2e3083862abea89c8f14595080ceda707c1c2df4828988df88469c3']
         },
         hardhat: {
             forking: {
@@ -94,7 +91,7 @@ module.exports = {
             live: true,
             saveDeployments: true,
             tags: ["test", "local"],
-        },
+        }
     },
     solidity: {
         compilers: [
@@ -114,4 +111,3 @@ module.exports = {
         runOnCompile: true,
     },
 };
-//export default config;

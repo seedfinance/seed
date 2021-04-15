@@ -13,6 +13,11 @@ contract Factory is AdminableInit  {
     address[] strategyList;
     address[] userList;
     mapping (address => address) public userMap;
+    UserManagerStorage userManagerStorage;
+
+    function setUserManagerStorage(address _userManagerStorage) external onlyAdmin {
+        userManagerStorage = UserManagerStorage(_userManagerStorage);
+    }
 
     function getStrategyNum() external view returns(uint) {
         return strategyList.length;
@@ -32,14 +37,14 @@ contract Factory is AdminableInit  {
 
     constructor() {}
 
-    function initialize(address _store) public override initializer {
-        AdminableInit.initialize(_store);    
+    function initialize(address _store) public initializer {
+        AdminableInit.initializeAdmin(_store);    
     }
 
     function createUser() public returns (address) {
         require(!userExist(msg.sender), "user already created");
         User user = new User(); 
-        user.initialize(address(this), address(store));
+        user.initialize(address(this), address(store), address(userManagerStorage));
         userMap[msg.sender] = address(user);
         userList.push(address(user));
         return address(user);

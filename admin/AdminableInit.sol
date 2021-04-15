@@ -10,7 +10,7 @@ contract AdminableInit is Initializable {
 
     constructor() {}
 
-    function initializeAdmin(address _store) public virtual initializer {
+    function initialize(address _store) public virtual initializer {
         require(_store != address(0), "new storage shouldn't be empty");
         store = AdminStorage(_store);
         
@@ -18,6 +18,11 @@ contract AdminableInit is Initializable {
 
     modifier onlyAdmin() {
         require(store.isAdmin(msg.sender), "Not admin");
+        _;
+    }
+
+    modifier onlyAdminOrWorker() {
+        require(store.isAdmin(msg.sender) || store.isWorker(msg.sender), "Not admin or worker");
         _;
     }
 }

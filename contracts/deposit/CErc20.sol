@@ -52,11 +52,12 @@ contract CErc20 is ERC2612 {
         uint mintToken = amount.mul(1e18).div(exchangeRate);
         _mint(msg.sender, mintToken);
     }
-
+    /*
     function withdraw(uint tokenAmount) external {
         require(balanceOf(msg.sender) >= tokenAmount, "influence balance");
 
     }
+    */
 
     function getExchangeRate() public view returns (uint) {
         uint _totalSupply = totalSupply(); //dToken的数量

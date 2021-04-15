@@ -17,8 +17,4 @@ contract Adminable {
         _;
     }
 
-    modifier onlyAdminOrWorker() {
-        require(store.isAdmin(msg.sender) || store.isWorker(msg.sender), "Not admin or worker");
-        _;
-    }
 }
