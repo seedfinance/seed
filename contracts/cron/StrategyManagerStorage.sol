@@ -12,8 +12,8 @@ contract StrategyManagerStorage is AdminableInit {
     using SafeMath for uint256;
 
     struct PathItem {
-        address[] path;
         address router;
+        address[] path;
     }
 
     mapping(address => mapping(address => PathItem)) pathes;
