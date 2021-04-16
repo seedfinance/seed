@@ -2,9 +2,15 @@
 
 pragma solidity >=0.7.2;
 
+import "../../admin/Adminable.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/proxy/Proxy.sol";
 import "@openzeppelin/contracts/proxy/Initializable.sol";
+
+interface IFactoryDelegator {
+    function acceptImplementation() external;
+    function admin() external view returns (address str);
+}
 
 contract FactoryDelegator is Proxy, Initializable {
     event NewPendingImplementation(
@@ -15,21 +21,21 @@ contract FactoryDelegator is Proxy, Initializable {
         address oldImplementation,
         address newImplementation
     );
-    event NewPendingAdmin(address oldPendingAdmin, address newPendingAdmin);
+    // event NewPendingAdmin(address oldPendingAdmin, address newPendingAdmin);
     event NewAdmin(address oldAdmin, address newAdmin);
 
     bytes32 internal constant _PENDING_IMPLEMENTATION_SLOT =
         0xb934901ebf3244f1659a9840042234c61640a585ab09b4f322ce284f3df86ee7;
     bytes32 internal constant _IMPLEMENTATION_SLOT =
         0xbbe9222478f202361cbba87e7b892281a77e39f09a27d85cf53e88a83f281f5c;
-    bytes32 internal constant _PENDING_ADMIN_SLOT =
-        0x983f9f63de388f21766bbb131a101c5cf87e8a4479cdcf0a03b4e329ae50ad59;
+    // bytes32 internal constant _PENDING_ADMIN_SLOT =
+    //     0x983f9f63de388f21766bbb131a101c5cf87e8a4479cdcf0a03b4e329ae50ad59;
     bytes32 internal constant _ADMIN_SLOT =
         0xa93938cbabb3ecb20cf99f4af5d5811606ede8a321a410d8f4e9d6bbbdc6f5d9;
 
     uint256[50] private ______gap;
 
-    constructor() {
+    constructor(address storage_) {
         assert(
             _PENDING_IMPLEMENTATION_SLOT ==
                 bytes32(
@@ -41,19 +47,19 @@ contract FactoryDelegator is Proxy, Initializable {
             _IMPLEMENTATION_SLOT ==
                 bytes32(uint256(keccak256("eip1967.factory.implementation")) - 1)
         );
-        assert(
-            _PENDING_ADMIN_SLOT ==
-                bytes32(uint256(keccak256("eip1967.factory.pendingadmin")) - 1)
-        );
+        // assert(
+        //     _PENDING_ADMIN_SLOT ==
+        //         bytes32(uint256(keccak256("eip1967.factory.pendingadmin")) - 1)
+        // );
         assert(
             _ADMIN_SLOT ==
                 bytes32(uint256(keccak256("eip1967.factory.admin")) - 1)
         );
-        setAddress(_ADMIN_SLOT, msg.sender);
+        setAddress(_ADMIN_SLOT, storage_);
     }
 
     modifier onlyAdmin() {
-        require(admin() == msg.sender, "Factory: caller is not the owner");
+        require(Adminable(admin()).admin() == msg.sender, "Factory: caller is not the owner");
         _;
     }
 
@@ -104,27 +110,27 @@ contract FactoryDelegator is Proxy, Initializable {
         );
     }
 
-    function setPendingAdmin(address newPendingAdmin) public onlyAdmin {
-        address oldPendingAdmin = getAddress(_PENDING_ADMIN_SLOT);
-        setAddress(_PENDING_ADMIN_SLOT, newPendingAdmin);
-        emit NewPendingAdmin(oldPendingAdmin, newPendingAdmin);
-    }
+    // function setPendingAdmin(address newPendingAdmin) public onlyAdmin {
+    //     address oldPendingAdmin = getAddress(_PENDING_ADMIN_SLOT);
+    //     setAddress(_PENDING_ADMIN_SLOT, newPendingAdmin);
+    //     emit NewPendingAdmin(oldPendingAdmin, newPendingAdmin);
+    // }
 
-    function acceptAdmin() public {
-        require(
-            msg.sender != address(0) && msg.sender == pendingAdmin(),
-            "Factory: unauthorized admin"
-        );
-        address oldPendingAdmin = pendingAdmin();
-        address oldAdmin = admin();
-        address newPendingAdmin = address(0);
-        address newAdmin = oldPendingAdmin;
-        setAddress(_PENDING_ADMIN_SLOT, newPendingAdmin);
-        setAddress(_ADMIN_SLOT, newAdmin);
+    // function acceptAdmin() public {
+    //     require(
+    //         msg.sender != address(0) && msg.sender == AdminStorage(pendingAdmin()).admin(),
+    //         "Factory: unauthorized admin"
+    //     );
+    //     address oldPendingAdmin = pendingAdmin();
+    //     address oldAdmin = admin();
+    //     address newPendingAdmin = address(0);
+    //     address newAdmin = oldPendingAdmin;
+    //     setAddress(_PENDING_ADMIN_SLOT, newPendingAdmin);
+    //     setAddress(_ADMIN_SLOT, newAdmin);
 
-        emit NewAdmin(oldAdmin, newAdmin);
-        emit NewPendingAdmin(oldPendingAdmin, newPendingAdmin);
-    }
+    //     emit NewAdmin(oldAdmin, newAdmin);
+    //     emit NewPendingAdmin(oldPendingAdmin, newPendingAdmin);
+    // }
 
     function pendingImplementation() public view returns (address str) {
         return getAddress(_PENDING_IMPLEMENTATION_SLOT);
@@ -134,9 +140,9 @@ contract FactoryDelegator is Proxy, Initializable {
         return getAddress(_IMPLEMENTATION_SLOT);
     }
 
-    function pendingAdmin() public view returns (address str) {
-        return getAddress(_PENDING_ADMIN_SLOT);
-    }
+    // function pendingAdmin() public view returns (address str) {
+    //     return getAddress(_PENDING_ADMIN_SLOT);
+    // }
 
     function admin() public view returns (address str) {
         return getAddress(_ADMIN_SLOT);
