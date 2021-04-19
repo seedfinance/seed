@@ -31,13 +31,13 @@ contract CustomInvestment is Ownable {
     address tokenChef; // lpToken reward address
     uint256 mdxChefPid;
 
-    address WETH; // WETH address
+    address public WETH; // WETH address
     
 
     constructor(
         address _receiver,
         address _router,
-        address _mdexChef,
+        address _mdxChef,
         address _tokenChef,
         uint256 _pairId
     ) public {
@@ -48,7 +48,7 @@ contract CustomInvestment is Ownable {
         factory = IUniswapV2Router02(_router).factory();
         require(factory != address(0), "factory address mistake");
         
-        mdxChef = IMdexChef(_mdexChef);
+        mdxChef = IMdexChef(_mdxChef);
         IMdexChef.MdxPoolInfo memory poolInfo = mdxChef.poolInfo(_pairId);
         lpToken = address(poolInfo.lpToken);
         require(lpToken != address(0), "lp token address mistake");
@@ -60,7 +60,7 @@ contract CustomInvestment is Ownable {
         token1 = IMdexPair(lpToken).token1();
         require(token1 != address(0),"token1 mistake");
 
-        WETH = IUniswapV2Router02(_router).WETH();
+        WETH = IUniswapV2Router02(_router).WHT();
         require(WETH != address(0),"WETH mistake");
 
         tokenChef = _tokenChef;
@@ -101,7 +101,7 @@ contract CustomInvestment is Ownable {
             amountBDesired = amountsDesired[1];
         }
         if (amountADesired != 0) {
-            (, , _amount) = _addLiquidity(token0, token1, amountADesired, amountBDesired,forAddr);
+            (, , _amount) = _addLiquidityExternal(token0, token1, amountADesired, amountBDesired,forAddr);
            IERC20(lpToken).approve(address(mdxChef), _amount);
             mdxChef.deposit(mdxChefPid, _amount);
         }
@@ -122,8 +122,21 @@ contract CustomInvestment is Ownable {
     ) internal returns (uint256 amountA, uint256 amountB, uint256 liquidity) {
         (amountA, amountB) = _getLiquidityAmount(tokenA, tokenB, amountADesired, amountBDesired);
         // address pair = pairFor(tokenA, tokenB);
-        TransferHelper.safeTransferFrom(tokenA, address(this), lpToken, amountA);
-        TransferHelper.safeTransferFrom(tokenB, address(this), lpToken, amountB);
+        TransferHelper.safeTransfer(tokenA, lpToken, amountA);
+        TransferHelper.safeTransfer(tokenB, lpToken, amountB);
+        liquidity = IMdexPair(lpToken).mint(to);
+    }
+    function _addLiquidityExternal(
+        address tokenA,
+        address tokenB,
+        uint256 amountADesired,
+        uint256 amountBDesired,
+        address to
+    ) internal returns (uint256 amountA, uint256 amountB, uint256 liquidity) {
+        (amountA, amountB) = _getLiquidityAmount(tokenA, tokenB, amountADesired, amountBDesired);
+        // address pair = pairFor(tokenA, tokenB);
+        TransferHelper.safeTransferFrom(tokenA, msg.sender, lpToken, amountA);
+        TransferHelper.safeTransferFrom(tokenB, msg.sender, lpToken, amountB);
         liquidity = IMdexPair(lpToken).mint(to);
     }
     function _getLiquidityAmount(
@@ -161,7 +174,7 @@ contract CustomInvestment is Ownable {
             _removeLiquidity(token0, token1, liquidity, to);
         }
     }
-    // **** REMOVE LIQUIDITY ****
+    // get token
     function _removeLiquidity(
         address tokenA,
         address tokenB,
@@ -186,7 +199,7 @@ contract CustomInvestment is Ownable {
         return amountBout[amountBout.length - 1];
    }
    function pairFor(address tokenA, address tokenB) internal view returns (address pair){
-        pair = IMdexFactory(factory).pairFor(tokenA, tokenB);
+        pair = IMdexFactory(factory).getPair(tokenA, tokenB);
     }
     function swap(
         address fromTokenAddress,
@@ -263,7 +276,5 @@ contract CustomInvestment is Ownable {
         }
     }
     fallback() external {}
-    receive() payable external {
-        // require(msg.value == 0, "not support receive HT");
-    }
+    receive() payable external {}
 }
