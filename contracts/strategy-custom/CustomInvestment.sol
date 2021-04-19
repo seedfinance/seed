@@ -6,11 +6,9 @@ pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
-import "./interface/IMdexChef.sol";
-import "./interface/IMdexFactory.sol";
-import "./interface/IUniswapV2Router02.sol";
-import './interface/IWETH.sol';
-import "./interface/IMdexPair.sol";
+import "../interface/IMdexChef.sol";
+import "../interface/IMdexFactory.sol";
+import "../interface/IMdexPair.sol";
 import "../libraries/TransferHelper.sol";
 
 import "../libraries/SwapLibrary.sol";
@@ -20,14 +18,15 @@ contract CustomInvestment is Ownable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    address public factory; // chef factory
     address public lpToken; // mdex pair, Address of LP contract address.
-    address tokenChef; // lpToken reward address
 
     IStrategyManager public manager; // manager
     IMdexChef public mdxChef; // mdx chef
     
-    uint256 mdxChefPid;
+    uint256 public mdxChefPid;
+    address public tokenChef; // lpToken reward address
+
+    address public receiver;
 
     event Deposite(address lpToken,uint256 amount);
     event Withdraw(address lpToken, uint256 amount);
@@ -38,7 +37,8 @@ contract CustomInvestment is Ownable {
         IStrategyManager _manager,
         address _tokenChef, // lpToken reward address
         address _mdexChef,
-        uint256 _pairId
+        uint256 _pairId,
+        address _receiver
     ) public {
         manager = _manager;
 
@@ -51,12 +51,24 @@ contract CustomInvestment is Ownable {
         tokenChef = _tokenChef;
         require(tokenChef != address(0), "token chef address mistake");
 
+        receiver = _receiver;
+        require(receiver != address(0), "token chef address mistake");
     }
+    function tokenToLiquidity(
+        address[] calldata tokens,
+        uint256[] calldata amountsDesired
+    ) public returns (uint256 liquidity) {
+        // swap token to add liquidity
 
+
+    }
+    function removeLiquity(uint liquidity) public {
+        // remove liquidity
+    }
     function deposite(
         address lp,
         uint256 amount
-    ) public payable {
+    ) public {
         require(lp == lpToken,"lpToken not match");
         if(amount >0 ){
             IERC20(lpToken).approve(address(mdxChef), amount);
@@ -94,7 +106,7 @@ contract CustomInvestment is Ownable {
         }
         emit DoHardWork(lpBalance);
     }
-    function claimTo(address receiver) public {
+    function claimTo() public {
         // claim inveset
         mdxChef.withdraw(mdxChefPid, 0);
         uint256 claimBalance = IERC20(tokenChef).balanceOf(address(this));

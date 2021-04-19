@@ -6,7 +6,7 @@ import './IUniswapV2Router01.sol';
 
 interface IUniswapV2Router02 {
     function factory() external pure returns (address);
-    function WETH() external pure returns (address);
+    function WHT() external pure returns (address);
 
     function addLiquidity(
         address tokenA,
