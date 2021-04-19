@@ -2,7 +2,7 @@
 
 pragma solidity >=0.7.2;
 
-import "./AdminStorage.sol";
+import './AdminStorage.sol';
 
 contract Adminable {
     AdminStorage public store;
@@ -13,7 +13,7 @@ contract Adminable {
     }
 
     modifier onlyAdmin() {
-        require(store.isAdmin(msg.sender), "Not admin");
+        require(store.isAdmin(msg.sender), 'Not admin');
         _;
     }
 

@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 
 pragma solidity >=0.7.2;
-import "../interface/IAccountMapper.sol";
-import "@openzeppelin/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts/utils/EnumerableSet.sol";
-import "@openzeppelin/contracts/proxy/Initializable.sol";
+import '../interface/IAccountMapper.sol';
+import '@openzeppelin/contracts/math/SafeMath.sol';
+import '@openzeppelin/contracts/utils/EnumerableSet.sol';
+import '@openzeppelin/contracts/proxy/Initializable.sol';
 
 contract Retrieve is Initializable {
     using SafeMath for uint256;
@@ -25,7 +25,7 @@ contract Retrieve is Initializable {
     }
 
     IAccountMapper public mapper;
-    string public constant name = "RetrieveV1";
+    string public constant name = 'RetrieveV1';
 
     uint256 public proposalCount;
     address public pendingExecutor;
@@ -36,14 +36,10 @@ contract Retrieve is Initializable {
 
     Proposal[] public proposals;
     mapping(address => uint256) public latestProposalIds;
-    bytes32 public constant DOMAIN_TYPEHASH =
-        keccak256(
-            "EIP712Domain(string name,uint256 chainId,address verifyingContract)"
-        );
+    bytes32 public constant DOMAIN_TYPEHASH = keccak256('EIP712Domain(string name,uint256 chainId,address verifyingContract)');
 
     /// @notice The EIP-712 typehash for the ballot struct used by the contract
-    bytes32 public constant BALLOT_TYPEHASH =
-        keccak256("Ballot(uint256 proposalId)");
+    bytes32 public constant BALLOT_TYPEHASH = keccak256('Ballot(uint256 proposalId)');
 
     event AddPendingFriend(address pendingFriend);
     event RemovePendingFriend(address pendingFriend);
@@ -51,13 +47,7 @@ contract Retrieve is Initializable {
     event RemoveFriend(address friend);
     event ChangePendingExecutor(address pendingExecutor);
     event ExecutorChanged(address oldExecutor, address executor);
-    event ProposalCreated(
-        uint256 id,
-        address proposer,
-        address target,
-        uint256 type_,
-        uint256 eta
-    );
+    event ProposalCreated(uint256 id, address proposer, address target, uint256 type_, uint256 eta);
     event ProposalExecuted(uint256 proposalId);
     event VoteCast(address voter, uint256 proposalId);
 
@@ -105,10 +95,7 @@ contract Retrieve is Initializable {
     }
 
     function state(uint256 proposalId) public view returns (ProposalState) {
-        require(
-            proposalCount >= proposalId && proposalId > 0,
-            "state: invalid proposal id"
-        );
+        require(proposalCount >= proposalId && proposalId > 0, 'state: invalid proposal id');
         Proposal storage proposal = proposals[proposalId];
         if (proposal.executed) {
             return ProposalState.Executed;
@@ -149,11 +136,8 @@ contract Retrieve is Initializable {
     }
 
     function acceptFriend() external {
-        require(
-            pendingFriends.contains(msg.sender),
-            "address not in pending address"
-        );
-        require(!friends.contains(msg.sender), "address has already been list");
+        require(pendingFriends.contains(msg.sender), 'address not in pending address');
+        require(!friends.contains(msg.sender), 'address has already been list');
         pendingFriends.remove(msg.sender);
         friends.add(msg.sender);
         mapper.resolve(msg.sender);
@@ -161,10 +145,7 @@ contract Retrieve is Initializable {
     }
 
     function acceptExecutor() external {
-        require(
-            msg.sender == pendingExecutor,
-            "acceptExecutor: pendingExecutor mismatch"
-        );
+        require(msg.sender == pendingExecutor, 'acceptExecutor: pendingExecutor mismatch');
         pendingExecutor = address(0);
         address oldExecutor = executor;
         mapper.unresolve(oldExecutor);
@@ -177,11 +158,11 @@ contract Retrieve is Initializable {
         uint256 executeType_,
         uint256 eta_
     ) external returns (uint256) {
-        require(quorumVotes() > 0, "propose: quorumVotes not enough");
-        require(block.timestamp < eta_, "eta: latest block.timestamp");
+        require(quorumVotes() > 0, 'propose: quorumVotes not enough');
+        require(block.timestamp < eta_, 'eta: latest block.timestamp');
 
-        require(target_ != address(0), "propose: target invalid");
-        require(target_ != executor, "propose: target invalid");
+        require(target_ != address(0), 'propose: target invalid');
+        require(target_ != executor, 'propose: target invalid');
 
         Proposal storage newProposal = proposals.push();
         newProposal.id = ++proposalCount;
@@ -193,13 +174,7 @@ contract Retrieve is Initializable {
         newProposal.executed = false;
 
         latestProposalIds[newProposal.proposer] = newProposal.id;
-        emit ProposalCreated(
-            newProposal.id,
-            msg.sender,
-            target_,
-            executeType_,
-            eta_
-        );
+        emit ProposalCreated(newProposal.id, msg.sender, target_, executeType_, eta_);
         return newProposal.id;
     }
 
@@ -213,46 +188,26 @@ contract Retrieve is Initializable {
         bytes32 r,
         bytes32 s
     ) public {
-        bytes32 domainSeparator =
-            keccak256(
-                abi.encode(
-                    DOMAIN_TYPEHASH,
-                    keccak256(bytes(name)),
-                    getChainId(),
-                    address(this)
-                )
-            );
+        bytes32 domainSeparator = keccak256(abi.encode(DOMAIN_TYPEHASH, keccak256(bytes(name)), getChainId(), address(this)));
         bytes32 structHash = keccak256(abi.encode(BALLOT_TYPEHASH, proposalId));
-        bytes32 digest =
-            keccak256(
-                abi.encodePacked("\x19\x01", domainSeparator, structHash)
-            );
+        bytes32 digest = keccak256(abi.encodePacked('\x19\x01', domainSeparator, structHash));
         address signatory = ecrecover(digest, v, r, s);
-        require(signatory != address(0), "castVoteBySig: invalid signature");
+        require(signatory != address(0), 'castVoteBySig: invalid signature');
         return _castVote(signatory, proposalId);
     }
 
     function _castVote(address voter, uint256 proposalId) internal {
-        require(friends.contains(voter), "_castVote: voter not in the list");
-        require(
-            state(proposalId) == ProposalState.Active,
-            "_castVote: voting is closed"
-        );
+        require(friends.contains(voter), '_castVote: voter not in the list');
+        require(state(proposalId) == ProposalState.Active, '_castVote: voting is closed');
         Proposal storage proposal = proposals[proposalId];
-        require(
-            proposal.hasVoted[voter] == false,
-            "_castVote: voter already voted"
-        );
+        require(proposal.hasVoted[voter] == false, '_castVote: voter already voted');
         proposal.forVotes = proposal.forVotes.add(1);
         proposal.hasVoted[voter] = true;
         emit VoteCast(voter, proposalId);
     }
 
     function execute(uint256 proposalId) external {
-        require(
-            state(proposalId) == ProposalState.Succeeded,
-            "execute: proposal can only be executed if it is succeeded"
-        );
+        require(state(proposalId) == ProposalState.Succeeded, 'execute: proposal can only be executed if it is succeeded');
         Proposal storage proposal = proposals[proposalId];
         proposal.executed = true;
 
@@ -272,12 +227,11 @@ contract Retrieve is Initializable {
         uint256 value_,
         bytes memory data_
     ) external payable returns (bytes memory) {
-        require(msg.sender == executor, "dev: wut?");
-        require(target_ != address(mapper), "dev: wut?");
+        require(msg.sender == executor, 'dev: wut?');
+        require(target_ != address(mapper), 'dev: wut?');
 
-        (bool success, bytes memory returnData) =
-            target_.call{value: value_}(data_);
-        require(success, "Transaction execution reverted.");
+        (bool success, bytes memory returnData) = target_.call{value: value_}(data_);
+        require(success, 'Transaction execution reverted.');
 
         return returnData;
     }

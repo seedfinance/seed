@@ -1,20 +1,20 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity >=0.6.6;
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/Pausable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "../interface/IMasterChef.sol";
-import "../libraries/TransferHelper.sol";
-import "../libraries/UniswapV2Library.sol";
-import "../libraries/SwapLibrary.sol";
-import "../interface/IStrategyManager.sol";
+pragma solidity >=0.7.2;
+import '@openzeppelin/contracts/access/Ownable.sol';
+import '@openzeppelin/contracts/utils/Pausable.sol';
+import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import '@openzeppelin/contracts/token/ERC20/ERC20.sol';
+import '../interface/IMasterChef.sol';
+import '../libraries/TransferHelper.sol';
+import '../libraries/SwapLibrary.sol';
+import '../interface/IStrategyManager.sol';
 
-contract AutoInvestment is Ownable, Pausable {
+contract AutoInvestment is Ownable, Pausable, ERC20 {
     using SafeMath for uint256;
+
     event Deposit(address indexed forAddr, uint256 share);
     event Withdraw(address indexed forAddr, uint256 share);
-
 
     IStrategyManager public manager;
 
@@ -23,105 +23,104 @@ contract AutoInvestment is Ownable, Pausable {
     uint256 public chefPid;
     address public lpToken;
 
-    uint256 public totalShares;
-    mapping(address => uint256) public shares;
+    uint256 totalAmounts;
 
     constructor(
         IStrategyManager _manager,
         IMasterChef _chef,
         address _chefToken,
+        address _lpToken,
         uint256 _pid
-    ) {
+    )
+        ERC20(
+            string(abi.encodePacked("x'", TransferHelper.safeName(_lpToken))),
+            string(abi.encodePacked("x'", TransferHelper.safeSymbol(_lpToken)))
+        )
+    {
+        (lpToken, , , ) = _chef.poolInfo(_pid);
+        assert(lpToken == _lpToken);
+
         manager = _manager;
         chef = _chef;
-        (lpToken, , , ) = chef.poolInfo(_pid);
-        require(lpToken != address(0), "lp token address mistake");
         chefToken = _chefToken;
         chefPid = _pid;
-    }
 
-    function pause() external onlyOwner whenNotPaused {
-        _pause();
+        if (TransferHelper.safeDecimals(lpToken) != 18) {
+            _setupDecimals(TransferHelper.safeDecimals(lpToken));
+        }
     }
-
-    function unpause() external onlyOwner whenPaused {
-         _unpause();
-    }
-
 
     // deposit lp token
-    function deposit(uint256 amount, address forAddr)
-        external
-        payable whenNotPaused
-        returns (uint256 share)
-    {
-        doHardWork();
-        uint256 totalAmounts = getTotalAmount();
-        if (totalShares == 0 || totalAmounts == 0) {
+    function deposit(address forAddr) external payable whenNotPaused {
+        _doHardWork();
+
+        uint256 amount = IERC20(lpToken).balanceOf(address(this));
+
+        if (amount == 0) {
+            return;
+        }
+        uint256 share;
+        if (totalSupply() == 0 || totalAmounts == 0) {
             share = amount;
         } else {
-            share = amount.mul(totalShares).div(totalAmounts);
+            share = amount.mul(totalSupply()).div(totalAmounts);
         }
-        totalShares = totalShares.add(share);
-        shares[forAddr] = shares[forAddr].add(share);
-        TransferHelper.safeTransferFrom(
-            lpToken,
-            msg.sender,
-            address(this),
-            amount
-        );
-        IERC20(lpToken).approve(address(chef), 0);
+
+        _mint(forAddr, share);
+        _approve(forAddr, msg.sender, allowance(forAddr, msg.sender).add(share));
+
+        totalAmounts = totalAmounts.add(amount);
+
         IERC20(lpToken).approve(address(chef), amount);
         chef.deposit(chefPid, amount);
 
         emit Deposit(forAddr, share);
     }
 
-    function emergencyWithdraw() external onlyOwner {
-        chef.emergencyWithdraw(chefPid);
-    }
+    // withdraw lp token;
+    function withdraw(address to) external {
+        if (!paused()) {
+            _doHardWork();
+        }
+        uint256 share = balanceOf(address(this));
 
-    function doHardWork() public {
-        if (paused()) {
+        if (share == 0) {
             return;
         }
+        // calc amount
+        uint256 what = share.mul(totalAmounts).div(totalSupply());
+
+        uint256 localAmounts = IERC20(lpToken).balanceOf(address(this));
+        if (what > localAmounts) {
+            chef.withdraw(chefPid, what.sub(localAmounts));
+        }
+
+        _burn(address(this), share);
+        TransferHelper.safeTransfer(lpToken, to, what);
+        totalAmounts = totalAmounts.sub(what);
+        emit Withdraw(to, share);
+    }
+
+    function emergencyWithdraw() external onlyOwner {
+        chef.emergencyWithdraw(chefPid);
+        _pause();
+    }
+
+    function doHardWork() external whenNotPaused {
+        _doHardWork();
+    }
+
+    function _doHardWork() private {
         // claim the earnings
         chef.withdraw(chefPid, 0);
 
         // reinvest
         uint256 swapAmount = IERC20(chefToken).balanceOf(address(this));
-        (, , uint256 lpAmount) =
-            SwapLibrary.swapToLpToken(manager, chefToken, lpToken, swapAmount, address(this));
-
-        IERC20(lpToken).approve(address(chef), lpAmount);
-        chef.deposit(chefPid, lpAmount);
-    }
-
-    function withdraw(address to, uint256 share) external {
-        require(shares[msg.sender] >= share, "share not enough");
-
-        doHardWork();
-        // calc amount
-        uint256 what = share.mul(getTotalAmount()).div(totalShares);
-        uint256 withdrawAmount = what.sub(getLocalAmount());
-        // if local not enough, withdraw from chef
-        if (withdrawAmount > 0) {
-            chef.withdraw(chefPid, withdrawAmount);
+        if (swapAmount > 0) {
+            (, , uint256 lpAmount) = SwapLibrary.swapToLpToken(manager, chefToken, lpToken, swapAmount, address(this));
+            totalAmounts = totalAmounts.add(lpAmount);
+            IERC20(lpToken).approve(address(chef), lpAmount);
+            chef.deposit(chefPid, lpAmount);
         }
-
-        TransferHelper.safeTransfer(lpToken, to, what);
-        shares[msg.sender] = shares[msg.sender].sub(share);
-        totalShares = totalShares.sub(share);
-        emit Withdraw(msg.sender, share);
     }
-
-    function getTotalAmount() internal view returns (uint256 amount) {
-        (amount, ) = IMasterChef(chef).userInfo(chefPid, address(this));
-        amount = amount.add(IERC20(lpToken).balanceOf(address(this)));
-    }
-
-    function getLocalAmount() internal view returns (uint256 amount) {
-        amount = amount.add(IERC20(lpToken).balanceOf(address(this)));
-    }
-
 }

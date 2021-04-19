@@ -12,10 +12,7 @@ interface IMasterChef {
             uint256 accSushiPerShare
         );
 
-    function userInfo(uint256 pid, address from)
-        external
-        view
-        returns (uint256 amount, uint256 rewardDebt);
+    function userInfo(uint256 pid, address from) external view returns (uint256 amount, uint256 rewardDebt);
 
     function deposit(uint256 _pid, uint256 _amount) external;
 

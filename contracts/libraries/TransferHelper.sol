@@ -4,18 +4,29 @@ pragma solidity >=0.6.0;
 
 // helper methods for interacting with ERC20 tokens and sending ETH that do not consistently return true/false
 library TransferHelper {
+    function safeSymbol(address token) internal view returns (string memory) {
+        (bool success, bytes memory data) = address(token).staticcall(abi.encodeWithSelector(0x95d89b41));
+        return success && data.length > 0 ? abi.decode(data, (string)) : '???';
+    }
+
+    function safeName(address token) internal view returns (string memory) {
+        (bool success, bytes memory data) = address(token).staticcall(abi.encodeWithSelector(0x06fdde03));
+        return success && data.length > 0 ? abi.decode(data, (string)) : '???';
+    }
+
+    function safeDecimals(address token) public view returns (uint8) {
+        (bool success, bytes memory data) = address(token).staticcall(abi.encodeWithSelector(0x313ce567));
+        return success && data.length == 32 ? abi.decode(data, (uint8)) : 18;
+    }
+
     function safeApprove(
         address token,
         address to,
         uint256 value
     ) internal {
         // bytes4(keccak256(bytes('approve(address,uint256)')));
-        (bool success, bytes memory data) =
-            token.call(abi.encodeWithSelector(0x095ea7b3, to, value));
-        require(
-            success && (data.length == 0 || abi.decode(data, (bool))),
-            "TransferHelper::safeApprove: approve failed"
-        );
+        (bool success, bytes memory data) = token.call(abi.encodeWithSelector(0x095ea7b3, to, value));
+        require(success && (data.length == 0 || abi.decode(data, (bool))), 'TransferHelper::safeApprove: approve failed');
     }
 
     function safeTransfer(
@@ -24,12 +35,8 @@ library TransferHelper {
         uint256 value
     ) internal {
         // bytes4(keccak256(bytes('transfer(address,uint256)')));
-        (bool success, bytes memory data) =
-            token.call(abi.encodeWithSelector(0xa9059cbb, to, value));
-        require(
-            success && (data.length == 0 || abi.decode(data, (bool))),
-            "TransferHelper::safeTransfer: transfer failed"
-        );
+        (bool success, bytes memory data) = token.call(abi.encodeWithSelector(0xa9059cbb, to, value));
+        require(success && (data.length == 0 || abi.decode(data, (bool))), 'TransferHelper::safeTransfer: transfer failed');
     }
 
     function safeTransferFrom(
@@ -39,19 +46,12 @@ library TransferHelper {
         uint256 value
     ) internal {
         // bytes4(keccak256(bytes('transferFrom(address,address,uint256)')));
-        (bool success, bytes memory data) =
-            token.call(abi.encodeWithSelector(0x23b872dd, from, to, value));
-        require(
-            success && (data.length == 0 || abi.decode(data, (bool))),
-            "TransferHelper::transferFrom: transferFrom failed"
-        );
+        (bool success, bytes memory data) = token.call(abi.encodeWithSelector(0x23b872dd, from, to, value));
+        require(success && (data.length == 0 || abi.decode(data, (bool))), 'TransferHelper::transferFrom: transferFrom failed');
     }
 
     function safeTransferETH(address to, uint256 value) internal {
         (bool success, ) = to.call{value: value}(new bytes(0));
-        require(
-            success,
-            "TransferHelper::safeTransferETH: ETH transfer failed"
-        );
+        require(success, 'TransferHelper::safeTransferETH: ETH transfer failed');
     }
 }

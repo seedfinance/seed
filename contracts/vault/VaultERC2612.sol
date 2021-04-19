@@ -2,10 +2,10 @@
 
 pragma solidity 0.7.2;
 
-import "../core/ERC2612.sol";
-import "../interface/IVault.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/math/SafeMath.sol";
+import '../core/ERC2612.sol';
+import '../interface/IVault.sol';
+import '@openzeppelin/contracts/token/ERC20/ERC20.sol';
+import '@openzeppelin/contracts/math/SafeMath.sol';
 
 contract VaultERC2612 is ERC2612 {
     using SafeMath for uint256;
@@ -14,8 +14,8 @@ contract VaultERC2612 is ERC2612 {
     constructor(address storage_, ERC20 underlying_)
         ERC2612(
             storage_,
-            string(abi.encodePacked("s", underlying_.name())),
-            string(abi.encodePacked("s", underlying_.symbol())),
+            string(abi.encodePacked('s', underlying_.name())),
+            string(abi.encodePacked('s', underlying_.symbol())),
             underlying_.decimals()
         )
     {
@@ -23,7 +23,7 @@ contract VaultERC2612 is ERC2612 {
     }
 
     function deposit(uint256 amount) external payable {
-        require(msg.value == 0, "contract donot accept HT");
+        require(msg.value == 0, 'contract donot accept HT');
         uint256 balanceBefore = underlying.balanceOf(address(this));
         underlying.transferFrom(msg.sender, address(this), amount);
         bool success;
@@ -43,9 +43,9 @@ contract VaultERC2612 is ERC2612 {
                     revert(0, 0)
                 }
         }
-        require(success, "TOKEN_TRANSFER_IN_FAILED");
+        require(success, 'TOKEN_TRANSFER_IN_FAILED');
         uint256 balanceAfter = underlying.balanceOf(address(this));
-        require(balanceAfter >= balanceBefore, "TOKEN_TRANSFER_IN_OVERFLOW");
+        require(balanceAfter >= balanceBefore, 'TOKEN_TRANSFER_IN_OVERFLOW');
         amount = balanceAfter.sub(balanceBefore);
         _mint(msg.sender, amount);
     }
@@ -70,12 +70,9 @@ contract VaultERC2612 is ERC2612 {
                     revert(0, 0)
                 }
         }
-        require(success, "TOKEN_TRANSFER_IN_FAILED");
+        require(success, 'TOKEN_TRANSFER_IN_FAILED');
         uint256 balanceAfter = underlying.balanceOf(address(this));
-        require(
-            balanceBefore.sub(balanceAfter) == amount,
-            "TOKEN_TRANSFER_IN_OVERFLOW"
-        );
+        require(balanceBefore.sub(balanceAfter) == amount, 'TOKEN_TRANSFER_IN_OVERFLOW');
         _burn(msg.sender, amount);
     }
 }

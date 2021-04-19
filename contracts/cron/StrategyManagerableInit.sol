@@ -2,12 +2,11 @@
 
 pragma solidity >=0.7.2;
 
-import "./StrategyManagerStorage.sol";
-import "../admin/AdminableInit.sol";
-import "@openzeppelin/contracts/proxy/Initializable.sol";
+import './StrategyManagerStorage.sol';
+import '../admin/AdminableInit.sol';
+import '@openzeppelin/contracts/proxy/Initializable.sol';
 
 contract StrategyManagerableInit is Initializable {
-
     StrategyManagerStorage store;
 
     constructor() {}

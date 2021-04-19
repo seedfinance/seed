@@ -2,7 +2,7 @@
 
 pragma solidity >=0.7.2;
 
-import "hardhat/console.sol";
+import 'hardhat/console.sol';
 
 contract AdminStorage {
     address public admin;
@@ -18,18 +18,18 @@ contract AdminStorage {
     }
 
     modifier onlyAdmin() {
-        require(isAdmin(msg.sender), "Not admin");
+        require(isAdmin(msg.sender), 'Not admin');
         _;
     }
 
     modifier onlyPendingAdmin() {
-        require(isPendingAdmin(msg.sender), "Not pending admin");
+        require(isPendingAdmin(msg.sender), 'Not pending admin');
         _;
     }
 
     function setPendingAdmin(address admin_) external onlyAdmin {
         require(admin_ != address(0), "new admin shouldn't be empty");
-        require(admin_ != admin, "new admin is the save with old admin");
+        require(admin_ != admin, 'new admin is the save with old admin');
         address oldPendingAdmin = pendingAdmin;
         pendingAdmin = admin_;
         emit NewPendingAdmin(oldPendingAdmin, pendingAdmin);

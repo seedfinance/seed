@@ -2,10 +2,10 @@
 
 pragma solidity ^0.7.2;
 
-import "../core/ERC2612.sol";
-import "../interface/IVault.sol";
-import "@openzeppelin/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import '../core/ERC2612.sol';
+import '../interface/IVault.sol';
+import '@openzeppelin/contracts/math/SafeMath.sol';
+import '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 
 contract CErc20 is ERC2612 {
     using SafeMath for uint256;
@@ -14,8 +14,8 @@ contract CErc20 is ERC2612 {
     constructor(address storage_, IVault underlying_)
         ERC2612(
             storage_,
-            string(abi.encodePacked("d", underlying_.underlying().name())),
-            string(abi.encodePacked("d", underlying_.underlying().symbol())),
+            string(abi.encodePacked('d', underlying_.underlying().name())),
+            string(abi.encodePacked('d', underlying_.underlying().symbol())),
             ERC20(underlying_.underlying()).decimals()
         )
     {
@@ -23,35 +23,35 @@ contract CErc20 is ERC2612 {
     }
 
     function deposit(
-        uint amount, 
+        uint256 amount,
         uint256 value,
         uint256 deadline,
         uint8 v,
         bytes32 r,
         bytes32 s
     ) external {
-        if (value > 0) { //进行授权
-            underlying.permit(
-                msg.sender, address(this), value, deadline, v, r, s
-            );
+        if (value > 0) {
+            //进行授权
+            underlying.permit(msg.sender, address(this), value, deadline, v, r, s);
         }
         //得到sToken
-        uint balanceBefore = underlying.balanceOf(address(this));
+        uint256 balanceBefore = underlying.balanceOf(address(this));
         underlying.transferFrom(msg.sender, address(this), amount);
-        uint balanceAfter = underlying.balanceOf(address(this));
-        require(amount == balanceAfter.sub(balanceBefore), "illegal transfer");
+        uint256 balanceAfter = underlying.balanceOf(address(this));
+        require(amount == balanceAfter.sub(balanceBefore), 'illegal transfer');
         //根据sToken得到underlying
         balanceBefore = underlying.underlying().balanceOf(address(this));
         underlying.approve(address(underlying), 0);
         underlying.approve(address(underlying), amount);
         underlying.withdraw(amount);
         balanceAfter = underlying.underlying().balanceOf(address(this));
-        require(amount == balanceAfter.sub(balanceBefore), "illegal transfer");
+        require(amount == balanceAfter.sub(balanceBefore), 'illegal transfer');
         //分发给用户平台币
-        uint exchangeRate = getExchangeRate();
-        uint mintToken = amount.mul(1e18).div(exchangeRate);
+        uint256 exchangeRate = getExchangeRate();
+        uint256 mintToken = amount.mul(1e18).div(exchangeRate);
         _mint(msg.sender, mintToken);
     }
+
     /*
     function withdraw(uint tokenAmount) external {
         require(balanceOf(msg.sender) >= tokenAmount, "influence balance");
@@ -59,14 +59,13 @@ contract CErc20 is ERC2612 {
     }
     */
 
-    function getExchangeRate() public view returns (uint) {
-        uint _totalSupply = totalSupply(); //dToken的数量
+    function getExchangeRate() public view returns (uint256) {
+        uint256 _totalSupply = totalSupply(); //dToken的数量
         if (_totalSupply == 0) {
             return 1e18;
         } else {
-            uint balance = underlying.underlying().balanceOf(address(this)); 
+            uint256 balance = underlying.underlying().balanceOf(address(this));
             return balance.mul(1e18).div(_totalSupply);
         }
     }
-
 }

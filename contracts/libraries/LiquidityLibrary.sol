@@ -2,11 +2,11 @@
 
 pragma solidity >=0.6.6;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./UniswapV2Library.sol";
-import "./TransferHelper.sol";
-import "../interface/IStrategyManager.sol";
-import "../interface/IWETH.sol";
+import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import './UniswapV2Library.sol';
+import './TransferHelper.sol';
+import '../interface/IStrategyManager.sol';
+import '../interface/IWETH.sol';
 
 library LiquidityLibrary {
     using SafeMath for uint256;
@@ -29,25 +29,9 @@ library LiquidityLibrary {
             uint256 liquidity
         )
     {
-        (amountA, amountB) = calcAddLiquidity(
-            pair,
-            amountADesired,
-            amountBDesired,
-            amountAMin,
-            amountBMin
-        );
-        TransferHelper.safeTransferFrom(
-            IUniswapV2Pair(pair).token0(),
-            msg.sender,
-            pair,
-            amountA
-        );
-        TransferHelper.safeTransferFrom(
-            IUniswapV2Pair(pair).token1(),
-            msg.sender,
-            pair,
-            amountB
-        );
+        (amountA, amountB) = calcAddLiquidity(pair, amountADesired, amountBDesired, amountAMin, amountBMin);
+        TransferHelper.safeTransferFrom(IUniswapV2Pair(pair).token0(), msg.sender, pair, amountA);
+        TransferHelper.safeTransferFrom(IUniswapV2Pair(pair).token1(), msg.sender, pair, amountB);
         liquidity = IUniswapV2Pair(pair).mint(to);
     }
 
@@ -60,17 +44,11 @@ library LiquidityLibrary {
         uint256 amountAMin,
         uint256 amountBMin,
         address to
-    ) public returns (uint256 amountA, uint256 amountB) {
+    ) internal returns (uint256 amountA, uint256 amountB) {
         IUniswapV2Pair(pair).transferFrom(msg.sender, pair, liquidity); // send liquidity to pair
         (amountA, amountB) = IUniswapV2Pair(pair).burn(to);
-        require(
-            amountA >= amountAMin,
-            "UniswapV2Router: INSUFFICIENT_A_AMOUNT"
-        );
-        require(
-            amountB >= amountBMin,
-            "UniswapV2Router: INSUFFICIENT_B_AMOUNT"
-        );
+        require(amountA >= amountAMin, 'UniswapV2Router: INSUFFICIENT_A_AMOUNT');
+        require(amountB >= amountBMin, 'UniswapV2Router: INSUFFICIENT_B_AMOUNT');
     }
 
     function addLiquidityETH(
@@ -89,13 +67,7 @@ library LiquidityLibrary {
             uint256 liquidity
         )
     {
-        (amount, amountETH) = calcAddLiquidity(
-            pair,
-            amountADesired,
-            amountBDesired,
-            amountAMin,
-            amountBMin
-        );
+        (amount, amountETH) = calcAddLiquidity(pair, amountADesired, amountBDesired, amountAMin, amountBMin);
         address token;
         (token, amount, amountETH) = IUniswapV2Pair(pair).token1() == WETH
             ? (IUniswapV2Pair(pair).token0(), amount, amountETH)
@@ -117,27 +89,18 @@ library LiquidityLibrary {
         uint256 amountAMin,
         uint256 amountBMin
     ) private view returns (uint256 amountA, uint256 amountB) {
-        (uint256 reserveA, uint256 reserveB, ) =
-            IUniswapV2Pair(pair).getReserves();
+        (uint256 reserveA, uint256 reserveB, ) = IUniswapV2Pair(pair).getReserves();
         if (reserveA == 0 && reserveB == 0) {
             (amountA, amountB) = (amountADesired, amountBDesired);
         } else {
-            uint256 amountBOptimal =
-                UniswapV2Library.quote(amountADesired, reserveA, reserveB);
+            uint256 amountBOptimal = UniswapV2Library.quote(amountADesired, reserveA, reserveB);
             if (amountBOptimal <= amountBDesired) {
-                require(
-                    amountBOptimal >= amountBMin,
-                    "UniswapV2Router: INSUFFICIENT_B_AMOUNT"
-                );
+                require(amountBOptimal >= amountBMin, 'UniswapV2Router: INSUFFICIENT_B_AMOUNT');
                 (amountA, amountB) = (amountADesired, amountBOptimal);
             } else {
-                uint256 amountAOptimal =
-                    UniswapV2Library.quote(amountBDesired, reserveB, reserveA);
+                uint256 amountAOptimal = UniswapV2Library.quote(amountBDesired, reserveB, reserveA);
                 assert(amountAOptimal <= amountADesired);
-                require(
-                    amountAOptimal >= amountAMin,
-                    "UniswapV2Router: INSUFFICIENT_A_AMOUNT"
-                );
+                require(amountAOptimal >= amountAMin, 'UniswapV2Router: INSUFFICIENT_A_AMOUNT');
                 (amountA, amountB) = (amountAOptimal, amountBDesired);
             }
         }
