@@ -44,7 +44,7 @@ contract Factory is AdminableInit  {
     function createUser() public returns (address) {
         require(!userExist(msg.sender), "user already created");
         User user = new User(); 
-        user.initialize(address(this), address(store), address(userManagerStorage));
+        user.initialize(address(this), address(storeAdmin), address(userManagerStorage));
         userMap[msg.sender] = address(user);
         userList.push(address(user));
         return address(user);
