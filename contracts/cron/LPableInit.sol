@@ -17,7 +17,7 @@ contract LPableInit is Initializable {
         storeLP = LPStorage(_store);
     }
 
-    function tokenToLiquidity(address pair, address[] calldata tokens, uint256[] calldata amountsDesired, address to) external returns (uint256, uint256, uint256) {
+    function tokenToLiquidity(address pair, address[] memory tokens, uint256[] memory amountsDesired, address to) public returns (uint256, uint256, uint256) {
         return storeLP.tokenToLiquidity(pair, tokens, amountsDesired, to);
     }
 

@@ -59,9 +59,10 @@ contract SwapStorage is AdminableInit {
         require(balanceAfter.sub(balanceBefore) == amount, "illegal token transfer");
         PathItem memory item = pathFor(_fromToken, _toToken);
         uint[] memory amounts = IUniswapV2Router02(item.router).swapTokensForExactTokens(amount, maxAmount, item.path, msg.sender, block.timestamp);
+        return amounts[amounts.length - 1];
     }
 
-    function getAmountsOut(address _fromToken, address _toToken, uint amount) external returns (uint) {
+    function getAmountsOut(address _fromToken, address _toToken, uint amount) external view returns (uint) {
         PathItem memory item = pathFor(_fromToken, _toToken);
         uint256[] memory amounts = UniswapV2Library.getAmountsOut(item.router, amount, item.path);
         return amounts[amounts.length - 1];
