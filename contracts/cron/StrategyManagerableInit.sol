@@ -8,20 +8,20 @@ import "@openzeppelin/contracts/proxy/Initializable.sol";
 
 contract StrategyManagerableInit is Initializable {
 
-    StrategyManagerStorage store;
+    StrategyManagerStorage storeStrategy;
 
     constructor() {}
 
-    function initialize(address _store) public virtual initializer {
-        store = StrategyManagerStorage(_store);
+    function initializeStrategy(address _store) public virtual initializer {
+        storeStrategy = StrategyManagerStorage(_store);
     }
     /*
     function pathFor(address _from, address _to) public view returns (address[] memory) {
-        return store.pathFor(SWAP_MDX, _from, _to); 
+        return storeStrategy.pathFor(SWAP_MDX, _from, _to); 
     }
 
     function pathFor(bytes32 _swap, address _from, address _to) public view returns (address[] memory) {
-        return store.pathFor(_swap, _from, _to); 
+        return storeStrategy.pathFor(_swap, _from, _to); 
     }
     */
 }
