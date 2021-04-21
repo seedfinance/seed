@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 
 pragma solidity >=0.7.2;
-import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/utils/Pausable.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 import '../interface/IMasterChef.sol';
 import '../libraries/TransferHelper.sol';
 import "../cron/LPableInit.sol";
-contract AutoInvestment is Ownable, LPableInit, Pausable, ERC20 {
+import "../admin/Adminable.sol";
+contract AutoInvestment is Adminable, LPableInit, Pausable, ERC20 {
     using SafeMath for uint256;
 
     event Deposit(address indexed forAddr, uint256 share);
@@ -20,15 +20,16 @@ contract AutoInvestment is Ownable, LPableInit, Pausable, ERC20 {
     address public lpToken;
 
     uint256 totalAmounts;
-    mapping (address => uint256) public defaultPrice;
+    mapping (address => uint256) public depositPrice;
 
     constructor(
+        address _store,
         address _lpStore,
         IMasterChef _chef,
         address _chefToken,
         address _lpToken,
         uint256 _pid
-    )
+    ) Adminable(_store)
         ERC20(
             string(abi.encodePacked("x'", TransferHelper.safeName(_lpToken))),
             string(abi.encodePacked("x'", TransferHelper.safeSymbol(_lpToken)))
@@ -99,7 +100,7 @@ contract AutoInvestment is Ownable, LPableInit, Pausable, ERC20 {
         emit Withdraw(to, share);
     }
 
-    function emergencyWithdraw() external onlyOwner {
+    function emergencyWithdraw() external onlyAdmin {
         chef.emergencyWithdraw(chefPid);
         _pause();
     }
