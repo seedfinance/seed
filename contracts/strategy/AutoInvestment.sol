@@ -7,16 +7,12 @@ import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 import '../interface/IMasterChef.sol';
 import '../libraries/TransferHelper.sol';
-import '../libraries/SwapLibrary.sol';
-import '../interface/IStrategyManager.sol';
-
-contract AutoInvestment is Ownable, Pausable, ERC20 {
+import "../cron/LPableInit.sol";
+contract AutoInvestment is Ownable, LPableInit, Pausable, ERC20 {
     using SafeMath for uint256;
 
     event Deposit(address indexed forAddr, uint256 share);
     event Withdraw(address indexed forAddr, uint256 share);
-
-    IStrategyManager public manager;
 
     IMasterChef public chef;
     address public chefToken;
@@ -24,9 +20,10 @@ contract AutoInvestment is Ownable, Pausable, ERC20 {
     address public lpToken;
 
     uint256 totalAmounts;
+    mapping (address => uint256) public defaultPrice;
 
     constructor(
-        IStrategyManager _manager,
+        address _lpStore,
         IMasterChef _chef,
         address _chefToken,
         address _lpToken,
@@ -37,10 +34,10 @@ contract AutoInvestment is Ownable, Pausable, ERC20 {
             string(abi.encodePacked("x'", TransferHelper.safeSymbol(_lpToken)))
         )
     {
+        LPableInit.initializeLiquidity(_lpStore);
         (lpToken, , , ) = _chef.poolInfo(_pid);
         assert(lpToken == _lpToken);
 
-        manager = _manager;
         chef = _chef;
         chefToken = _chefToken;
         chefPid = _pid;
@@ -73,6 +70,7 @@ contract AutoInvestment is Ownable, Pausable, ERC20 {
 
         IERC20(lpToken).approve(address(chef), amount);
         chef.deposit(chefPid, amount);
+        depositPrice[forAddr] = totalSupply().div(totalAmounts);
 
         emit Deposit(forAddr, share);
     }
@@ -117,7 +115,12 @@ contract AutoInvestment is Ownable, Pausable, ERC20 {
         // reinvest
         uint256 swapAmount = IERC20(chefToken).balanceOf(address(this));
         if (swapAmount > 0) {
-            (, , uint256 lpAmount) = SwapLibrary.swapToLpToken(manager, chefToken, lpToken, swapAmount, address(this));
+            address[] memory tokens = new address[](1);
+            uint256[] memory tokenAmounts = new uint256[](1);
+            tokens[0] = chefToken;
+            tokenAmounts[0] = swapAmount;
+            (, , uint256 lpAmount) = tokenToLiquidity(lpToken, tokens, tokenAmounts, address(this));
+
             totalAmounts = totalAmounts.add(lpAmount);
             IERC20(lpToken).approve(address(chef), lpAmount);
             chef.deposit(chefPid, lpAmount);
