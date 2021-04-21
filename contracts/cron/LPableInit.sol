@@ -13,7 +13,7 @@ contract LPableInit is Initializable {
 
     constructor() {}
 
-    function initializeLiquidity(address _store) public virtual initializer {
+    function initializeLiquidity(address _store) internal {
         storeLP = LPStorage(_store);
     }
 

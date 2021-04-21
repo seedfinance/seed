@@ -13,7 +13,7 @@ contract SwapableInit is Initializable {
 
     constructor() {}
 
-    function initializeSwap(address _store) public virtual initializer {
+    function initializeSwap(address _store) internal {
         storeSwap = SwapStorage(_store);
     }
 

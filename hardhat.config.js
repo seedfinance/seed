@@ -1,3 +1,4 @@
+require("@nomiclabs/hardhat-waffle");
 require("hardhat-gas-reporter");
 require("hardhat-spdx-license-identifier");
 require('hardhat-deploy');

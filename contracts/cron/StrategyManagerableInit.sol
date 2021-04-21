@@ -11,7 +11,7 @@ contract StrategyManagerableInit is Initializable {
 
     constructor() {}
 
-    function initializeStrategy(address _store) public virtual initializer {
+    function initializeStrategy(address _store) private {
         storeStrategy = StrategyManagerStorage(_store);
     }
     /*

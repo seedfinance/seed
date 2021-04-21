@@ -13,7 +13,7 @@ contract LiquidityableInit is Initializable {
 
     constructor() {}
 
-    function initializeLiquidity(address _store) public virtual initializer {
+    function initializeLiquidity(address _store) internal {
         storeLiquidity = LiquidityStorage(_store);
     }
 

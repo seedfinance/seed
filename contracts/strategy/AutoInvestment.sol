@@ -11,8 +11,8 @@ import "../admin/Adminable.sol";
 contract AutoInvestment is Adminable, LPableInit, Pausable, ERC20 {
     using SafeMath for uint256;
 
-    event Deposit(address indexed forAddr, uint256 share);
-    event Withdraw(address indexed forAddr, uint256 share);
+    event Deposit(address indexed forAddr, uint256 share, uint256 amount);
+    event Withdraw(address indexed forAddr, uint256 share, uint256 amount);
 
     IMasterChef public chef;
     address public chefToken;
@@ -73,7 +73,7 @@ contract AutoInvestment is Adminable, LPableInit, Pausable, ERC20 {
         chef.deposit(chefPid, amount);
         depositPrice[forAddr] = totalSupply().div(totalAmounts);
 
-        emit Deposit(forAddr, share);
+        emit Deposit(forAddr, share, amount);
     }
 
     // withdraw lp token;
@@ -97,7 +97,7 @@ contract AutoInvestment is Adminable, LPableInit, Pausable, ERC20 {
         _burn(address(this), share);
         TransferHelper.safeTransfer(lpToken, to, what);
         totalAmounts = totalAmounts.sub(what);
-        emit Withdraw(to, share);
+        emit Withdraw(to, share, what);
     }
 
     function emergencyWithdraw() external onlyAdmin {

@@ -12,7 +12,7 @@ contract RouterManagerableInit is Initializable {
 
     constructor() {}
 
-    function initialize(address _store) public virtual initializer {
+    function initialize(address _store) private {
         routerStore = RouterManagerStorage(_store);
     }
 

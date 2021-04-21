@@ -39,7 +39,7 @@ contract UserManagerStorage is AdminableInit {
     constructor() {}
 
     function initialize(address _store) public initializer {
-        AdminableInit.initializeAdmin(_store);
+        initializeAdmin(_store);
     }
 
     function setMinFee(uint256 newMinFee) external onlyAdmin {

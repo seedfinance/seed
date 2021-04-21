@@ -11,7 +11,7 @@ contract UserManagerableInit is Initializable {
 
     constructor() {}
 
-    function initialize(address _userManagerStore) public virtual initializer {
+    function initialize(address _userManagerStore) internal {
         userManagerStore = UserManagerStorage(_userManagerStore);
     }
 }
