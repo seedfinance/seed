@@ -25,6 +25,23 @@ contract AutoInvestmentRouter {
         WETH = _WETH;
     }
 
+    function deposit(
+        address pair,
+        uint256 amount,
+        address to
+    ) external {
+            address automoulde = spec.getAutoInvestment(pair);
+            TransferHelper.safeTransferFrom(pair, msg.sender, automoulde, amount);
+            AutoInvestment(automoulde).deposit(to);
+    }
+    function withdraw(
+        address automoulde,
+        uint256 liquidity,
+        address to
+    ) external {
+            TransferHelper.safeTransferFrom(automoulde, msg.sender, automoulde, liquidity);
+            AutoInvestment(automoulde).withdraw(to);
+    }
     function addLiquidity(
         address pair,
         uint256 amountADesired,

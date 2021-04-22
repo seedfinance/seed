@@ -13,7 +13,7 @@ import "../../interface/IMdexFactory.sol";
 import "../../interface/IMdexPair.sol";
 import "../../libraries/TransferHelper.sol";
 
-contract AutoInvestment is AdminableInit, LPableInit {
+contract CronAutoInvestment is AdminableInit, LPableInit {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
@@ -24,7 +24,7 @@ contract AutoInvestment is AdminableInit, LPableInit {
     address public pair; // mdex pair, Address of LP contract address.
 
     address public receiver;
-    
+
     // LpBuilderStorage lpBuilder;
 
     event Deposite(address pair,uint256 amount);

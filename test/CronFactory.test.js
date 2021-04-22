@@ -7,6 +7,7 @@ describe("CronFactory", () => {
         this.Factory = await ethers.getContractFactory("Factory");    
         this.UserManagerStorage = await ethers.getContractFactory("UserManagerStorage");
         this.signers = await ethers.getSigners();
+        console.log(this.signers)
         this.admin = this.signers[0];
     })
 

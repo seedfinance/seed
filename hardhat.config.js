@@ -3,6 +3,7 @@ require("hardhat-gas-reporter");
 require("hardhat-spdx-license-identifier");
 require('hardhat-deploy');
 require("@nomiclabs/hardhat-ethers");
+require("dotenv/config")
 
 let accounts = [];
 var fs = require("fs");

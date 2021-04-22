@@ -13,7 +13,6 @@ contract AdminableInit is Initializable {
     function initializeAdmin(address _store) internal {
         require(_store != address(0), "new storage shouldn't be empty");
         storeAdmin = AdminStorage(_store);
-        
     }
 
     modifier onlyAdmin() {
