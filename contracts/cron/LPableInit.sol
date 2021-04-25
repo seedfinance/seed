@@ -18,6 +18,9 @@ contract LPableInit is Initializable {
     }
 
     function tokenToLiquidity(address pair, address[] memory tokens, uint256[] memory amountsDesired, address to) public returns (uint256, uint256, uint256) {
+        for(uint256 i; i< tokens.length; ++i) {
+            IERC20(tokens[i]).approve(address(storeLP), amountsDesired[i]);
+        }
         return storeLP.tokenToLiquidity(pair, tokens, amountsDesired, to);
     }
 

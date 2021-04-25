@@ -24,7 +24,7 @@ contract SwapStorage is AdminableInit {
     function initialize(address _store) public initializer {
         AdminableInit.initializeAdmin(_store);
     }
-    
+
     function setPath(address _from, address _to, address[] memory _path, address _router) external onlyAdmin {
         require(_from == _path[0], "The first token of the Uniswap route must be the from token"); 
         require(_to == _path[_path.length - 1], "The last token of the Uniswap route must be the to token");
@@ -64,7 +64,7 @@ contract SwapStorage is AdminableInit {
 
     function getAmountsOut(address _fromToken, address _toToken, uint amount) external view returns (uint) {
         PathItem memory item = pathFor(_fromToken, _toToken);
-        uint256[] memory amounts = UniswapV2Library.getAmountsOut(item.router, amount, item.path);
-        return amounts[amounts.length - 1];
+        uint256[] memory amounts = IUniswapV2Router02(item.router).getAmountsOut(amount, item.path);
+       return amounts[amounts.length - 1];
     }
 }
