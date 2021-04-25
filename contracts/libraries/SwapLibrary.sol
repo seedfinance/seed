@@ -275,17 +275,16 @@ library SwapLibrary {
         (exactAmountA, exactAmountB) = calcAddLiquidity(lpToken, forecastTokenA, forecastTokenB, 0, 0);
 
         if (token != token0) {
-            swapTokensForExactTokens(exactAmountA, swapAmount, item0.path, item0.pair, address(this));
+            swapTokensForExactTokens(exactAmountA, swapAmount, item0.path, item0.pair, lpToken);
+        } else {
+            SafeERC20.safeTransferFrom(IERC20(token), msg.sender, lpToken, exactAmountA);
         }
         if (token != token1) {
-            swapTokensForExactTokens(exactAmountB, swapAmount, item1.path, item1.pair, address(this));
+            swapTokensForExactTokens(exactAmountB, swapAmount, item1.path, item1.pair, lpToken);
+        } else {
+            SafeERC20.safeTransferFrom(IERC20(token), msg.sender, lpToken, exactAmountB);
         }
-
         // add liquidity
-        IERC20(token0).approve(lpToken, exactAmountA);
-        IERC20(token1).approve(lpToken, exactAmountB);
-        SafeERC20.safeTransferFrom(IERC20(token0), address(this), lpToken, exactAmountA);
-        SafeERC20.safeTransferFrom(IERC20(token1), address(this), lpToken, exactAmountB);
         liquidity = IUniswapV2Pair(lpToken).mint(to);
     }
 }
