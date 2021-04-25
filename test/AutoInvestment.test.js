@@ -11,7 +11,7 @@ describe("Auto investment", async function () {
     before(async function () {
         this.signers = await ethers.getSigners()
         this.alice = this.signers[0]
-        this.bob = await network.provider.request({
+        await network.provider.request({
             method: "hardhat_impersonateAccount",
             params: ["0xC9121e476155eBf0B794b7B351808af3787E727d"],
           })
@@ -77,21 +77,25 @@ describe("Auto investment", async function () {
             await this.autoInvestment.deposit(this.bob.address)
             expect(await this.HBTC_USDT.balanceOf(this.autoInvestment.address)).equal(0)
             expect(await this.autoInvestment.balanceOf(this.bob.address)).equal(lpBalance)
+            let [amount, , ] = await this.chef.userInfo(this.chefPid, this.autoInvestment.address)
+            expect(amount).equal(lpBalance)
         })
         it("should be check pending reward", async function (){
             // console.log(await this.chef.pending(this.chefPid, this.autoInvestment.address))
             let [mdxReward,tokenAmount] =  await this.chef.pending(this.chefPid, this.autoInvestment.address)
-            // console.log(mdxReward)
-            // console.log(tokenAmount)
             expect(mdxReward).equal(0)
             expect(tokenAmount).equal(0)
-            console.log(1)
             await network.provider.send("evm_mine", []);
             [mdxReward,tokenAmount] = await this.chef.pending(this.chefPid, this.autoInvestment.address)
-            // console.log(mdxReward)
-            // console.log(tokenAmount)
             expect(mdxReward).not.null
             expect(tokenAmount).equal(0)
+        })
+        it("should be do hard work", async function() {
+            let [amount, , ] = await this.chef.userInfo(this.chefPid, this.autoInvestment.address)
+            console.log(amount)
+            await this.autoInvestment.doHardWork();
+            [amount, , ] = await this.chef.userInfo(this.chefPid, this.autoInvestment.address)
+            console.log(amount)
         })
     })
 })
