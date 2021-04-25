@@ -17,7 +17,7 @@ import '../interface/IWETH.sol';
 import "../interface/IMdexPair.sol";
 import "../libraries/TransferHelper.sol";
 import "../interface/IStrategyManager.sol";
-import "../libraries/SwapLibrary.sol";
+//import "../libraries/SwapLibrary.sol";
 
 contract LPBuilder is AdminableInit, LiquidityableInit {
     using SafeMath for uint256;

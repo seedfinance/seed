@@ -22,16 +22,22 @@ contract SwapableInit is Initializable {
     }
 
     function swap(address _fromToken, address _toToken, uint amount) public returns (uint) {
+        /*
         IERC20(_fromToken).approve(address(storeSwap), amount);
         return storeSwap.swap(_fromToken, _toToken, amount);
+        */
     }
 
     function swapForExact(address _fromToken, address _toToken, uint amount, uint maxAmount) public returns (uint) {
+        /*
         IERC20(_fromToken).approve(address(storeSwap), maxAmount);
         return storeSwap.swapForExact(_fromToken, _toToken, amount, maxAmount);
+        */
     }
 
     function getAmountsOut(address _fromToken, address _toToken, uint amount) public returns (uint) {
+        /*
         return storeSwap.getAmountsOut(_fromToken, _toToken, amount);
+        */
     }
 }
