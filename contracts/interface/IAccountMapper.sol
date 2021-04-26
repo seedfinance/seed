@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity >=0.7.2;
+pragma solidity >=0.7.4;
 
 interface IAccountMapper {
     function getAccountIndex(address) external view returns (address[] memory);

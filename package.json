@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "concurrently \"npm run prettier\" && solhint -c .solhint.json contracts/**/*.sol",
-    "prettier": "prettier --write test/**/*.ts && prettier --write contracts/**/*.sol"
+    "lint": "concurrently \"npm run prettier\" && solhint -c .solhint.json 'contracts/**/*.sol'",
+    "prettier": "prettier --write 'test/**/*' && prettier --write 'contracts/**/*.sol'"
   },
   "author": "",
   "license": "MIT",

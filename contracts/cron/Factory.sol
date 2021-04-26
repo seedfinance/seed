@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity >=0.7.2;
+pragma solidity >=0.7.4;
 import './User.sol';
 import 'hardhat/console.sol';
 import '../admin/AdminableInit.sol';
@@ -12,7 +12,7 @@ contract Factory is AdminableInit {
     using SafeMath for uint256;
 
     address[] public strategyList;
-    mapping(address => uint) strategyMap;
+    mapping(address => uint256) strategyMap;
     address[] public userList;
     mapping(address => address) public userMap;
     UserManagerStorage public userManagerStorage;
@@ -25,16 +25,16 @@ contract Factory is AdminableInit {
         return strategyList.length;
     }
 
-    function addStrategy(address _strategy) external onlyAdmin returns (uint) {
-        require (strategyMap[_strategy] == 0, "strategy already exists");
+    function addStrategy(address _strategy) external onlyAdmin returns (uint256) {
+        require(strategyMap[_strategy] == 0, 'strategy already exists');
         strategyList.push(_strategy);
         strategyMap[_strategy] = strategyList.length;
     }
 
-    function delStrategy(uint _idx) external onlyAdmin returns (address) {
-        require(_idx <= strategyList.length, "strategy not exist");
+    function delStrategy(uint256 _idx) external onlyAdmin returns (address) {
+        require(_idx <= strategyList.length, 'strategy not exist');
         address strategy = strategyList[_idx - 1];
-        require(strategyMap[strategy] != 0, "strategy not exist");
+        require(strategyMap[strategy] != 0, 'strategy not exist');
         delete strategyMap[strategy];
         return strategy;
     }
@@ -51,12 +51,12 @@ contract Factory is AdminableInit {
     }
 
     function getStrategyById(uint256 _idx) external view returns (address) {
-        require(strategyExist(_idx), "strategy not exists");
+        require(strategyExist(_idx), 'strategy not exists');
         return strategyList[_idx - 1];
     }
 
-    function getStrategyByAddress(address _strategy) external view returns (uint) {
-        require(strategyMap[_strategy] != 0, "strategy not exist");
+    function getStrategyByAddress(address _strategy) external view returns (uint256) {
+        require(strategyMap[_strategy] != 0, 'strategy not exist');
         return strategyMap[_strategy];
     }
 
@@ -76,8 +76,8 @@ contract Factory is AdminableInit {
     }
 
     function createUser() public returns (address) {
-        require(!userExist(msg.sender), "user already created");
-        User user = new User(); 
+        require(!userExist(msg.sender), 'user already created');
+        User user = new User();
         user.initialize(address(this), address(storeAdmin), address(userManagerStorage));
         userMap[msg.sender] = address(user);
         userList.push(address(user));

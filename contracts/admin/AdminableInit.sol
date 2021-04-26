@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity >=0.7.2;
+pragma solidity >=0.7.4;
 
 import '@openzeppelin/contracts/proxy/Initializable.sol';
 import './AdminStorage.sol';
@@ -16,7 +16,7 @@ contract AdminableInit is Initializable {
     }
 
     modifier onlyAdmin() {
-        require(storeAdmin.isAdmin(msg.sender), "Not admin");
+        require(storeAdmin.isAdmin(msg.sender), 'Not admin');
         _;
     }
 }

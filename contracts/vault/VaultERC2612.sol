@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.7.2;
+pragma solidity >=0.7.4;
 
 import '../core/ERC2612.sol';
 import '../interface/IVault.sol';

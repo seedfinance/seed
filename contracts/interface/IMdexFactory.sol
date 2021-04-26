@@ -3,7 +3,7 @@
 pragma solidity >=0.6.12;
 
 interface IMdexFactory {
-    event PairCreated(address indexed token0, address indexed token1, address pair, uint);
+    event PairCreated(address indexed token0, address indexed token1, address pair, uint256);
 
     function feeTo() external view returns (address);
 
@@ -15,9 +15,9 @@ interface IMdexFactory {
 
     function getPair(address tokenA, address tokenB) external view returns (address pair);
 
-    function allPairs(uint) external view returns (address pair);
+    function allPairs(uint256) external view returns (address pair);
 
-    function allPairsLength() external view returns (uint);
+    function allPairsLength() external view returns (uint256);
 
     function createPair(address tokenA, address tokenB) external returns (address pair);
 
@@ -35,11 +35,23 @@ interface IMdexFactory {
 
     function getReserves(address tokenA, address tokenB) external view returns (uint256 reserveA, uint256 reserveB);
 
-    function quote(uint256 amountA, uint256 reserveA, uint256 reserveB) external pure returns (uint256 amountB);
+    function quote(
+        uint256 amountA,
+        uint256 reserveA,
+        uint256 reserveB
+    ) external pure returns (uint256 amountB);
 
-    function getAmountOut(uint256 amountIn, uint256 reserveIn, uint256 reserveOut) external view returns (uint256 amountOut);
+    function getAmountOut(
+        uint256 amountIn,
+        uint256 reserveIn,
+        uint256 reserveOut
+    ) external view returns (uint256 amountOut);
 
-    function getAmountIn(uint256 amountOut, uint256 reserveIn, uint256 reserveOut) external view returns (uint256 amountIn);
+    function getAmountIn(
+        uint256 amountOut,
+        uint256 reserveIn,
+        uint256 reserveOut
+    ) external view returns (uint256 amountIn);
 
     function getAmountsOut(uint256 amountIn, address[] calldata path) external view returns (uint256[] memory amounts);
 

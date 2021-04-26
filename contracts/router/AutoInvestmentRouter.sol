@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity >=0.7.2;
+pragma solidity >=0.7.4;
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
 import '../strategy/AutoInvestment.sol';
@@ -30,18 +30,20 @@ contract AutoInvestmentRouter {
         uint256 amount,
         address to
     ) external {
-            address automoulde = spec.getAutoInvestment(pair);
-            TransferHelper.safeTransferFrom(pair, msg.sender, automoulde, amount);
-            AutoInvestment(automoulde).deposit(to);
+        address automoulde = spec.getAutoInvestment(pair);
+        TransferHelper.safeTransferFrom(pair, msg.sender, automoulde, amount);
+        AutoInvestment(automoulde).deposit(to);
     }
+
     function withdraw(
         address automoulde,
         uint256 liquidity,
         address to
     ) external {
-            TransferHelper.safeTransferFrom(automoulde, msg.sender, automoulde, liquidity);
-            AutoInvestment(automoulde).withdraw(to);
+        TransferHelper.safeTransferFrom(automoulde, msg.sender, automoulde, liquidity);
+        AutoInvestment(automoulde).withdraw(to);
     }
+
     function addLiquidity(
         address pair,
         uint256 amountADesired,

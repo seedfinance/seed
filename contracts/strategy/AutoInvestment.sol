@@ -1,14 +1,15 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity >=0.7.2;
+pragma solidity >=0.7.4;
 import '@openzeppelin/contracts/utils/Pausable.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 import '../interface/IMdexChef.sol';
+import '../admin/Adminable.sol';
 import '../libraries/TransferHelper.sol';
-import "../cron/LPableInit.sol";
-import "../admin/Adminable.sol";
-contract AutoInvestment is Adminable, LPableInit, Pausable, ERC20 {
+import '../libraries/SwapLibraryInternal.sol';
+
+contract AutoInvestment is Adminable, Pausable, ERC20 {
     using SafeMath for uint256;
 
     event Deposit(address indexed forAddr, uint256 share, uint256 amount);
@@ -18,25 +19,27 @@ contract AutoInvestment is Adminable, LPableInit, Pausable, ERC20 {
     address public chefToken;
     uint256 public chefPid;
     address public lpToken;
+    ISwapStorage public swapStore;
 
     uint256 totalAmounts;
-    mapping (address => uint256) public depositPrice;
+    mapping(address => uint256) public depositPrice;
 
     constructor(
         address _store,
-        address _lpStore,
+        address _swapStore,
         IMdexChef _chef,
         address _chefToken,
         address _lpToken,
         uint256 _pid
-    ) Adminable(_store)
+    )
+        Adminable(_store)
         ERC20(
             string(abi.encodePacked("x'", TransferHelper.safeName(_lpToken))),
             string(abi.encodePacked("x'", TransferHelper.safeSymbol(_lpToken)))
         )
     {
-        LPableInit.initializeLiquidity(_lpStore);
-        (lpToken, , , , ,) = _chef.poolInfo(_pid);
+        swapStore = ISwapStorage(_swapStore);
+        (lpToken, , , , , ) = _chef.poolInfo(_pid);
         assert(lpToken == _lpToken);
 
         chef = _chef;
@@ -114,12 +117,9 @@ contract AutoInvestment is Adminable, LPableInit, Pausable, ERC20 {
         chef.withdraw(chefPid, 0);
 
         // reinvest
-        uint256[] memory tokenAmounts = new uint256[](1);
-        tokenAmounts[0] = IERC20(chefToken).balanceOf(address(this));
-        if (tokenAmounts[0] > 0) {
-            address[] memory tokens = new address[](1);
-            tokens[0] = chefToken;
-            (, , uint256 lpAmount) = tokenToLiquidity(lpToken, tokens, tokenAmounts, address(this));
+        uint256 amount = IERC20(chefToken).balanceOf(address(this));
+        if (amount > 0) {
+            (, , uint256 lpAmount) = SwapLibraryInternal.swapToLpToken(swapStore, chefToken, lpToken, amount, address(this));
 
             totalAmounts = totalAmounts.add(lpAmount);
             IERC20(lpToken).approve(address(chef), lpAmount);

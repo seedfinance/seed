@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity >=0.7.2;
+pragma solidity >=0.7.4;
 pragma experimental ABIEncoderV2;
 
-import "./SwapableInit.sol";
-import "../libraries/UniswapV2Library.sol";
-import "../libraries/TransferHelper.sol";
-import "../admin/AdminableInit.sol";
-import "../interface/IUniswapV2Router02.sol";
-import "@openzeppelin/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import './SwapableInit.sol';
+import '../libraries/UniswapV2Library.sol';
+import '../libraries/TransferHelper.sol';
+import '../admin/AdminableInit.sol';
+import '../interface/IUniswapV2Router02.sol';
+import '@openzeppelin/contracts/math/SafeMath.sol';
+import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
 contract LiquidityStorage is AdminableInit, SwapableInit {
     using SafeMath for uint256;
@@ -54,13 +54,7 @@ contract LiquidityStorage is AdminableInit, SwapableInit {
             forecastTokenB = swapAmount;
         }
 
-        (exactAmountA, exactAmountB) = calcAddLiquidity(
-            pair,
-            forecastTokenA,
-            forecastTokenB,
-            0,
-            0
-        );
+        (exactAmountA, exactAmountB) = calcAddLiquidity(pair, forecastTokenA, forecastTokenB, 0, 0);
 
         if (token != token0) {
             swapForExact(token, token0, exactAmountA, forecastTokenA);
@@ -72,18 +66,8 @@ contract LiquidityStorage is AdminableInit, SwapableInit {
         // add liquidity
         //IERC20(token0).approve(pair, exactAmountA);
         //IERC20(token1).approve(pair, exactAmountB);
-        TransferHelper.safeTransferFrom(
-            token0,
-            address(this),
-            pair,
-            exactAmountA
-        );
-        TransferHelper.safeTransferFrom(
-            token1,
-            address(this),
-            pair,
-            exactAmountB
-        );
+        TransferHelper.safeTransferFrom(token0, address(this), pair, exactAmountA);
+        TransferHelper.safeTransferFrom(token1, address(this), pair, exactAmountB);
         liquidity = IUniswapV2Pair(pair).mint(to);
     }
 
@@ -92,22 +76,19 @@ contract LiquidityStorage is AdminableInit, SwapableInit {
         address pair,
         uint256 amountADesired,
         uint256 amountBDesired,
-        uint amountAMin,
-        uint amountBMin
+        uint256 amountAMin,
+        uint256 amountBMin
     ) private view returns (uint256 amountA, uint256 amountB) {
-        (uint256 reserveA, uint256 reserveB, ) =
-            IUniswapV2Pair(pair).getReserves();
+        (uint256 reserveA, uint256 reserveB, ) = IUniswapV2Pair(pair).getReserves();
         if (reserveA == 0 && reserveB == 0) {
             (amountA, amountB) = (amountADesired, amountBDesired);
         } else {
-            uint256 amountBOptimal =
-                UniswapV2Library.quote(amountADesired, reserveA, reserveB);
+            uint256 amountBOptimal = UniswapV2Library.quote(amountADesired, reserveA, reserveB);
             if (amountBOptimal <= amountBDesired) {
                 require(amountBOptimal >= amountBMin, 'UniswapV2Router: INSUFFICIENT_B_AMOUNT');
                 (amountA, amountB) = (amountADesired, amountBOptimal);
             } else {
-                uint256 amountAOptimal =
-                    UniswapV2Library.quote(amountBDesired, reserveB, reserveA);
+                uint256 amountAOptimal = UniswapV2Library.quote(amountBDesired, reserveB, reserveA);
                 assert(amountAOptimal <= amountADesired);
                 require(amountAOptimal >= amountAMin, 'UniswapV2Router: INSUFFICIENT_A_AMOUNT');
                 (amountA, amountB) = (amountAOptimal, amountBDesired);

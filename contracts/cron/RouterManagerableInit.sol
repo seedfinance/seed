@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity >=0.7.2;
+pragma solidity >=0.7.4;
 
-import "./RouterManagerStorage.sol";
-import "../admin/AdminableInit.sol";
-import "@openzeppelin/contracts/proxy/Initializable.sol";
+import './RouterManagerStorage.sol';
+import '../admin/AdminableInit.sol';
+import '@openzeppelin/contracts/proxy/Initializable.sol';
 
 contract RouterManagerableInit is Initializable {
-
     RouterManagerStorage routerStore;
 
     constructor() {}

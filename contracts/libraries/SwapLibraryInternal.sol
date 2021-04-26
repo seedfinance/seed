@@ -8,7 +8,7 @@ import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/math/SafeMath.sol';
 
-library SwapLibrary {
+library SwapLibraryInternal {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
@@ -40,93 +40,6 @@ library SwapLibrary {
         uint256 numerator = amountInWithFee.mul(reserveOut);
         uint256 denominator = reserveIn.mul(1000).add(amountInWithFee);
         amountOut = numerator / denominator;
-    }
-
-    function _addLiquidity(
-        address pair,
-        address tokenA,
-        address tokenB,
-        uint256 amountADesired,
-        uint256 amountBDesired,
-        uint256 amountAMin,
-        uint256 amountBMin
-    ) internal returns (uint256 amountA, uint256 amountB) {
-        (address token0, ) = sortTokens(tokenA, tokenB);
-        (uint256 reserve0, uint256 reserve1, ) = IUniswapV2Pair(pair).getReserves();
-        (uint256 reserveA, uint256 reserveB) = tokenA == token0 ? (reserve0, reserve1) : (reserve1, reserve0);
-        if (reserveA == 0 && reserveB == 0) {
-            (amountA, amountB) = (amountADesired, amountBDesired);
-        } else {
-            uint256 amountBOptimal = quote(amountADesired, reserveA, reserveB);
-            if (amountBOptimal <= amountBDesired) {
-                require(amountBOptimal >= amountBMin, 'INSUFFICIENT_B_AMOUNT');
-                (amountA, amountB) = (amountADesired, amountBOptimal);
-            } else {
-                uint256 amountAOptimal = quote(amountBDesired, reserveB, reserveA);
-                assert(amountAOptimal <= amountADesired);
-                require(amountAOptimal >= amountAMin, 'INSUFFICIENT_A_AMOUNT');
-                (amountA, amountB) = (amountAOptimal, amountBDesired);
-            }
-        }
-    }
-
-    function addLiquidity(
-        address pair,
-        address tokenA,
-        address tokenB,
-        uint256 amountADesired,
-        uint256 amountBDesired,
-        uint256 amountAMin,
-        uint256 amountBMin,
-        address to
-    )
-        internal
-        returns (
-            uint256 amountA,
-            uint256 amountB,
-            uint256 liquidity
-        )
-    {
-        (amountA, amountB) = _addLiquidity(pair, tokenA, tokenB, amountADesired, amountBDesired, amountAMin, amountBMin);
-        IERC20(tokenA).safeTransferFrom(msg.sender, pair, amountA);
-        IERC20(tokenB).safeTransferFrom(msg.sender, pair, amountB);
-        liquidity = IUniswapV2Pair(pair).mint(to);
-    }
-
-    function removeLiquidity(
-        address pair,
-        address tokenA,
-        address tokenB,
-        uint256 liquidity,
-        uint256 amountAMin,
-        uint256 amountBMin,
-        address to
-    ) internal returns (uint256 amountA, uint256 amountB) {
-        IUniswapV2Pair(pair).transferFrom(msg.sender, pair, liquidity); // send liquidity to pair
-        (uint256 amount0, uint256 amount1) = IUniswapV2Pair(pair).burn(to);
-        (address token0, ) = sortTokens(tokenA, tokenB);
-        (amountA, amountB) = tokenA == token0 ? (amount0, amount1) : (amount1, amount0);
-        require(amountA >= amountAMin, 'INSUFFICIENT_A_AMOUNT');
-        require(amountB >= amountBMin, 'INSUFFICIENT_B_AMOUNT');
-    }
-
-    function removeLiquidityWithPermit(
-        address pair,
-        address tokenA,
-        address tokenB,
-        uint256 liquidity,
-        uint256 amountAMin,
-        uint256 amountBMin,
-        address to,
-        uint256 deadline,
-        bool approveMax,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) internal returns (uint256 amountA, uint256 amountB) {
-        uint256 value = approveMax ? uint256(-1) : liquidity;
-        IUniswapV2Pair(pair).permit(msg.sender, address(this), value, deadline, v, r, s);
-        (amountA, amountB) = removeLiquidity(pair, tokenA, tokenB, liquidity, amountAMin, amountBMin, to);
     }
 
     function _swap(
@@ -170,7 +83,7 @@ library SwapLibrary {
     ) internal returns (uint256[] memory amounts) {
         amounts = getAmountsOut(amountIn, item);
         require(amounts[amounts.length - 1] >= amountOutMin, 'INSUFFICIENT_OUTPUT_AMOUNT');
-        IERC20(item.path[0]).safeTransferFrom(msg.sender, item.pair[0], amounts[0]);
+        IERC20(item.path[0]).safeTransfer(item.pair[0], amounts[0]);
         _swap(amounts, item, to);
     }
 
@@ -213,7 +126,7 @@ library SwapLibrary {
     ) internal returns (uint256[] memory amounts) {
         amounts = getAmountsIn(amountOut, item);
         require(amounts[0] <= amountInMax, 'UniswapV2Router: EXCESSIVE_INPUT_AMOUNT');
-        IERC20(item.path[0]).safeTransferFrom(msg.sender, item.pair[0], amounts[0]);
+        IERC20(item.path[0]).safeTransfer(item.pair[0], amounts[0]);
         _swap(amounts, item, to);
     }
 
@@ -286,12 +199,12 @@ library SwapLibrary {
         if (token != token0) {
             swapTokensForExactTokens(exactAmountA, swapAmount, item0, lpToken);
         } else {
-            IERC20(token).safeTransferFrom(msg.sender, lpToken, exactAmountA);
+            IERC20(token).safeTransfer(lpToken, exactAmountA);
         }
         if (token != token1) {
             swapTokensForExactTokens(exactAmountB, swapAmount, item1, lpToken);
         } else {
-            IERC20(token).safeTransferFrom(msg.sender, lpToken, exactAmountB);
+            IERC20(token).safeTransfer(lpToken, exactAmountB);
         }
         // add liquidity
         liquidity = IUniswapV2Pair(lpToken).mint(to);

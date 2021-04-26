@@ -1,102 +1,63 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity >=0.7.2;
+pragma solidity >=0.7.4;
 
-import "../../admin/Adminable.sol";
-import "@openzeppelin/contracts/utils/Address.sol";
-import "@openzeppelin/contracts/proxy/Proxy.sol";
-import "@openzeppelin/contracts/proxy/Initializable.sol";
+import '../../admin/Adminable.sol';
+import '@openzeppelin/contracts/utils/Address.sol';
+import '@openzeppelin/contracts/proxy/Proxy.sol';
+import '@openzeppelin/contracts/proxy/Initializable.sol';
 
 interface IFactoryDelegator {
     function acceptImplementation() external;
+
     function admin() external view returns (address str);
 }
 
 contract FactoryDelegator is Proxy, Initializable {
-    event NewPendingImplementation(
-        address oldPendingImplementation,
-        address newPendingImplementation
-    );
-    event NewImplementation(
-        address oldImplementation,
-        address newImplementation
-    );
+    event NewPendingImplementation(address oldPendingImplementation, address newPendingImplementation);
+    event NewImplementation(address oldImplementation, address newImplementation);
     // event NewPendingAdmin(address oldPendingAdmin, address newPendingAdmin);
     event NewAdmin(address oldAdmin, address newAdmin);
 
-    bytes32 internal constant _PENDING_IMPLEMENTATION_SLOT =
-        0xb934901ebf3244f1659a9840042234c61640a585ab09b4f322ce284f3df86ee7;
-    bytes32 internal constant _IMPLEMENTATION_SLOT =
-        0xbbe9222478f202361cbba87e7b892281a77e39f09a27d85cf53e88a83f281f5c;
+    bytes32 internal constant _PENDING_IMPLEMENTATION_SLOT = 0xb934901ebf3244f1659a9840042234c61640a585ab09b4f322ce284f3df86ee7;
+    bytes32 internal constant _IMPLEMENTATION_SLOT = 0xbbe9222478f202361cbba87e7b892281a77e39f09a27d85cf53e88a83f281f5c;
     // bytes32 internal constant _PENDING_ADMIN_SLOT =
     //     0x983f9f63de388f21766bbb131a101c5cf87e8a4479cdcf0a03b4e329ae50ad59;
-    bytes32 internal constant _ADMIN_SLOT =
-        0xa93938cbabb3ecb20cf99f4af5d5811606ede8a321a410d8f4e9d6bbbdc6f5d9;
+    bytes32 internal constant _ADMIN_SLOT = 0xa93938cbabb3ecb20cf99f4af5d5811606ede8a321a410d8f4e9d6bbbdc6f5d9;
 
     uint256[50] private ______gap;
 
     constructor(address storage_) {
-        assert(
-            _PENDING_IMPLEMENTATION_SLOT ==
-                bytes32(
-                    uint256(keccak256("eip1967.factory.pendingimplementation")) -
-                        1
-                )
-        );
-        assert(
-            _IMPLEMENTATION_SLOT ==
-                bytes32(uint256(keccak256("eip1967.factory.implementation")) - 1)
-        );
+        assert(_PENDING_IMPLEMENTATION_SLOT == bytes32(uint256(keccak256('eip1967.factory.pendingimplementation')) - 1));
+        assert(_IMPLEMENTATION_SLOT == bytes32(uint256(keccak256('eip1967.factory.implementation')) - 1));
         // assert(
         //     _PENDING_ADMIN_SLOT ==
         //         bytes32(uint256(keccak256("eip1967.factory.pendingadmin")) - 1)
         // );
-        assert(
-            _ADMIN_SLOT ==
-                bytes32(uint256(keccak256("eip1967.factory.admin")) - 1)
-        );
+        assert(_ADMIN_SLOT == bytes32(uint256(keccak256('eip1967.factory.admin')) - 1));
         setAddress(_ADMIN_SLOT, storage_);
     }
 
     modifier onlyAdmin() {
-        require(Adminable(admin()).admin() == msg.sender, "Factory: caller is not the owner");
+        require(Adminable(admin()).admin() == msg.sender, 'Factory: caller is not the owner');
         _;
     }
 
     function initialize(address _logic, bytes memory _data) public initializer {
-        require(
-            Address.isContract(_logic),
-            "Factory: new implementation is not a contract"
-        );
+        require(Address.isContract(_logic), 'Factory: new implementation is not a contract');
         setAddress(_IMPLEMENTATION_SLOT, _logic);
-        Address.functionDelegateCall(
-            _logic,
-            abi.encodeWithSignature("initialize()", _data)
-        );
+        Address.functionDelegateCall(_logic, abi.encodeWithSignature('initialize()', _data));
     }
 
-    function setPendingImplementation(address newPendingImplementation)
-        public
-        onlyAdmin
-    {
-        require(
-            Address.isContract(newPendingImplementation),
-            "Factory: new implementation is not a contract"
-        );
-        address oldPendingImplementation =
-            getAddress(_PENDING_IMPLEMENTATION_SLOT);
+    function setPendingImplementation(address newPendingImplementation) public onlyAdmin {
+        require(Address.isContract(newPendingImplementation), 'Factory: new implementation is not a contract');
+        address oldPendingImplementation = getAddress(_PENDING_IMPLEMENTATION_SLOT);
         setAddress(_PENDING_IMPLEMENTATION_SLOT, newPendingImplementation);
-        emit NewPendingImplementation(
-            oldPendingImplementation,
-            newPendingImplementation
-        );
+        emit NewPendingImplementation(oldPendingImplementation, newPendingImplementation);
     }
 
     function acceptImplementation() public {
-        require(
-            msg.sender != address(0) && msg.sender == pendingImplementation(),
-            "Factory: unauthorized Implementation"
-        );
+        require(msg.sender != address(0) && msg.sender == pendingImplementation(), 'Factory: unauthorized Implementation');
         address oldPendingImplementation = pendingImplementation();
         address oldImplementation = Implementation();
         address newPendingImplementation = address(0);
@@ -104,10 +65,7 @@ contract FactoryDelegator is Proxy, Initializable {
         setAddress(_IMPLEMENTATION_SLOT, oldPendingImplementation);
         setAddress(_PENDING_IMPLEMENTATION_SLOT, newPendingImplementation);
         emit NewImplementation(oldImplementation, newImplementation);
-        emit NewPendingImplementation(
-            oldPendingImplementation,
-            newPendingImplementation
-        );
+        emit NewPendingImplementation(oldPendingImplementation, newPendingImplementation);
     }
 
     // function setPendingAdmin(address newPendingAdmin) public onlyAdmin {
