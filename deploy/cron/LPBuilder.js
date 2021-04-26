@@ -10,7 +10,6 @@ module.exports = async function ({
     const { deployer, admin } = await ethers.getNamedSigners();
     let adminStorage = await ethers.getContract('AdminStorage');
     let strategyManagerStorage = await ethers.getContract('StrategyManagerStorage');
-    let 
     //部署LPBuilder合约
     let deployResult = await deploy('LPBuilder', {
         from: deployer.address,
@@ -18,7 +17,7 @@ module.exports = async function ({
 
     let StrategyManagerStorageFactory = await ethers.getContractFactory("StrategyManagerStorage");
     let strategyManagerProxy = await ethers.getContract('StrategyManagerStorage_Proxy');
-    let strategyManagerStorage = await StrategyManagerStorageFactory.attach(strategyManagerProxy.address);
+    strategyManagerStorage = await StrategyManagerStorageFactory.attach(strategyManagerProxy.address);
     let tx = await strategyManagerStorage.connect(deployer).initialize(adminStorage.address);
     console.log("StrategyManagerStorage initialize: " + tx.hash);
 };

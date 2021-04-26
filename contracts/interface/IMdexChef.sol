@@ -16,6 +16,8 @@ interface IMdexChef {
         uint256 totalAmount; // Total amount of current pool deposit.
     }
 
+    function LpOfPid(address _pair) external view returns (uint256);
+
     function emergencyWithdraw(uint256 _pid) external;
 
     function pending(uint256 _pid, address _user) external view returns (uint256, uint256);
