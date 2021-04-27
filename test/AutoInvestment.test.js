@@ -3,10 +3,7 @@ var chai = require("chai");
 const chaiAsPromised = require("chai-as-promised");
 const {
   AdminStorageDeploy,
-  LPStorageDeploy,
   SwapStorageDeploy,
-  LiquidityStorageDeploy,
-  LPBuilderDeploy,
 } = require("./utils/utils.js");
 
 const expect = chai.expect;

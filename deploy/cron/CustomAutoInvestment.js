@@ -1,4 +1,4 @@
-const network = require('../networks/heco.json');
+// const network = require('../networks/heco.json');
 
 module.exports = async ({
 	ethers,

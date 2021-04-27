@@ -2,6 +2,7 @@ require("@nomiclabs/hardhat-waffle");
 require("hardhat-gas-reporter");
 require("hardhat-spdx-license-identifier");
 require('hardhat-deploy');
+require ('hardhat-abi-exporter');
 require("@nomiclabs/hardhat-ethers");
 require("dotenv/config")
 
@@ -56,6 +57,13 @@ const prompt = require('prompt-sync')();
 
 module.exports = {
     defaultNetwork: "hardhat",
+    abiExporter: {
+        path: "./abi",
+        clear: false,
+        flat: true,
+        // only: [],
+        // except: []
+      },
     namedAccounts: {
         deployer: {
             default: 0,
@@ -88,6 +96,9 @@ module.exports = {
         },
         HBTC:{
             default: '0x66a79d23e58475d2738179ca52cd0b41d73f0bea'
+        },
+        WHT:{
+            default: '0x5545153ccfca01fbd7dd11c0b23ba694d9509a6f'
         },
         Factory:{
             default: '0xb0b670fc1f7724119963018db0bfa86adb22d941'
