@@ -41,7 +41,7 @@ describe("CustomAutoInvestment", () => {
         this.adminStorage = await AdminStorageDeploy(this.bob.address)
         this.swapStorage = await SwapStorageDeploy(this.adminStorage.address)
         // swap path
-        await this.swapStorage.connect(this.bob).setPath(MDX,eth_token0,[MDX,eth_token0],[mdx_eth])
+        await this.swapStorage.connect(this.bob).setPath(MDX,eth_token0,[MDX,usdt_token1,eth_token0],[mdx_usdt,eth_usdt])
         await this.swapStorage.connect(this.bob).setPath(MDX,usdt_token1,[MDX,usdt_token1],[mdx_usdt])
         await this.swapStorage.connect(this.bob).setPath(eth_token0,usdt_token1,[eth_token0,usdt_token1],[eth_usdt])
         await this.swapStorage.connect(this.bob).setPath(usdt_token1,eth_token0,[usdt_token1,eth_token0],[eth_usdt])
@@ -77,6 +77,15 @@ describe("CustomAutoInvestment", () => {
         expect(await this.autoInvestment.storeAdmin()).to.equal(this.adminStorage.address);
         expect(await this.autoInvestment.overlapRate()).to.equal(expandTo18Decimals(1));
     })
+    it("should set correct token address", async function () {
+        // set tokenRework
+        tx = await this.autoInvestment.connect(this.bob).setTokenReward(eth_usdt)
+        expect(await this.autoInvestment.tokenReward()).to.equal(eth_usdt)
+        tx = await this.autoInvestment.connect(this.bob).setNewInvest(eth_usdt)
+        expect(await this.autoInvestment.newInvest()).to.equal(eth_usdt)
+        tx = await this.autoInvestment.connect(this.bob).setOverlapRate(expandTo18Decimals(2))
+        expect(await this.autoInvestment.overlapRate()).to.equal(expandTo18Decimals(2))
+    })
     
     context("swap test", function () {
         before(async function () {
@@ -86,7 +95,7 @@ describe("CustomAutoInvestment", () => {
         })
         beforeEach(async function () {
             await this.ETH.connect(this.bob).approve(this.autoInvestment.address,ethers.utils.parseEther("2"))
-            await this.USDT.connect(this.bob).approve(this.autoInvestment.address,ethers.utils.parseEther("5000"))
+            await this.USDT.connect(this.bob).approve(this.autoInvestment.address,ethers.utils.parseEther("6000"))
         })
 
         it("swap should be equal correct amount", async function() {           
@@ -106,6 +115,23 @@ describe("CustomAutoInvestment", () => {
             expect(carolUSDTAfterBalance.sub(carolUSDTBeforeBalance)).to.equal(swapAmount);
             console.log("swap sub usdt balance", expandToNormal(carolUSDTAfterBalance.sub(carolUSDTBeforeBalance)))
             console.log("swap sub eth balance", expandToNormal(carolETHBeforeBalance.sub(caroETHAfterBalance)))
+        })
+        it("swap should be equal correct amount for eth", async function() {           
+            // approve
+            const carolUSDTBeforeBalance = await this.USDT.balanceOf(this.bob.address)
+            const carolETHBeforeBalance = await this.ETH.balanceOf(this.carol.address)
+            const swapAmount = ethers.utils.parseEther("1").toBigInt();
+            tx = await this.autoInvestment.connect(this.bob).swapTokensForExactTokens(
+                usdt_token1,
+                eth_token0,
+                swapAmount,
+                this.carol.address
+            )
+            await network.provider.send("evm_mine", []);
+            const caroETHAfterBalance = await this.ETH.balanceOf(this.carol.address)
+            const carolUSDTAfterBalance = await this.USDT.balanceOf(this.bob.address)
+            expect(caroETHAfterBalance.sub(carolETHBeforeBalance)).to.equal(swapAmount);
+            console.log("from usdt to one eth",expandToNormal(carolUSDTBeforeBalance.sub(carolUSDTAfterBalance)))
         })
     })
 
@@ -140,7 +166,8 @@ describe("CustomAutoInvestment", () => {
             await network.provider.send("evm_mine", []);
             let [mdxReward,tokenAmount] =  await this.POOL.pending(eth_usdt_pid, this.autoInvestment.address)
             expect(mdxReward).not.null
-            console.log("two token addliquidity",mdxReward.toBigInt())
+            console.log("two token addliquidity reward",mdxReward.toBigInt())
+            console.log("use eth for addliqudity",carolETHBeforeBalance.sub(caroETHAfterBalance).toBigInt())
             expect(tokenAmount).equal(0)
         })
         it("one token eth to addLiquidity", async function (){
@@ -194,7 +221,7 @@ describe("CustomAutoInvestment", () => {
                 this.autoInvestment.address
             )
             const ethBalance = await this.ETH.balanceOf(this.dave.address)            
-            await this.autoInvestment.connect(this.bob).removeLiquity(this.dave.address,liquidityBalance)
+            await this.autoInvestment.connect(this.bob).removeLiquity(this.dave.address,liquidityBalance.add(1000))
 
             let [liquidityOldBalance, ,]  = await this.POOL.userInfo(
                 eth_usdt_pid,

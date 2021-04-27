@@ -142,7 +142,17 @@ library SwapLibrary {
             IUniswapV2Pair(item.pair[i]).swap(amount0Out, amount1Out, to, new bytes(0));
         }
     }
-
+    // fetches and sorts the reserves for a pair
+    function getReserves(
+        address pair, 
+        address tokenA, 
+        address tokenB
+    ) internal view returns (uint reserveA, uint reserveB) {
+        (address token0,) = sortTokens(tokenA, tokenB);
+        (uint reserve0, uint reserve1,) = IUniswapV2Pair(pair).getReserves();
+        (reserveA, reserveB) = tokenA == token0 ? (reserve0, reserve1) : (reserve1, reserve0);
+    }
+    
     function getAmountsOutWithFee(
         uint256 amountIn,
         uint256 fee,
@@ -152,7 +162,8 @@ library SwapLibrary {
         amounts = new uint256[](item.path.length);
         amounts[0] = amountIn;
         for (uint256 i; i < item.path.length - 1; i++) {
-            (uint256 reserveIn, uint256 reserveOut, ) = IUniswapV2Pair(item.pair[i]).getReserves();
+            (uint reserveIn, uint reserveOut) = getReserves(item.pair[i], item.path[i],item.path[i+1]);
+            // (uint256 reserveIn, uint256 reserveOut, ) = IUniswapV2Pair(item.pair[i - 1]).getReserves();
             amounts[i + 1] = getAmountOut(amounts[i], reserveIn, reserveOut, fee);
         }
     }
@@ -185,7 +196,7 @@ library SwapLibrary {
         uint256 denominator = reserveOut.sub(amountOut).mul(fee);
         amountIn = (numerator / denominator).add(1);
     }
-
+    
     function getAmountsInWithFee(
         uint256 amountOut,
         uint256 fee,
@@ -195,7 +206,8 @@ library SwapLibrary {
         amounts = new uint256[](item.path.length);
         amounts[amounts.length - 1] = amountOut;
         for (uint256 i = item.path.length - 1; i > 0; i--) {
-            (uint256 reserveIn, uint256 reserveOut, ) = IUniswapV2Pair(item.pair[i - 1]).getReserves();
+            (uint reserveIn, uint reserveOut) = getReserves(item.pair[i - 1], item.path[i-1],item.path[i]);
+            // (uint256 reserveIn, uint256 reserveOut, ) = IUniswapV2Pair(item.pair[i - 1]).getReserves();
             amounts[i - 1] = getAmountIn(amounts[i], reserveIn, reserveOut, fee);
         }
     }
@@ -299,7 +311,7 @@ library SwapLibrary {
             IERC20(token1).safeTransfer(lpToken, exactAmountB);
         } else {
             IERC20(token1).safeTransferFrom(msg.sender, lpToken, exactAmountB);
-        }        
+        }
         // add liquidity
         liquidity = IUniswapV2Pair(lpToken).mint(to);
     }
