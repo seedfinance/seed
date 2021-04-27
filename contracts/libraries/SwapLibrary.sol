@@ -7,7 +7,6 @@ import '@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol';
 import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/math/SafeMath.sol';
-
 library SwapLibrary {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
@@ -282,17 +281,25 @@ library SwapLibrary {
         }
 
         (exactAmountA, exactAmountB) = calcAddLiquidity(lpToken, forecastTokenA, forecastTokenB, 0, 0);
-
         if (token != token0) {
-            swapTokensForExactTokens(exactAmountA, swapAmount, item0, lpToken);
-        } else {
-            IERC20(token).safeTransferFrom(msg.sender, lpToken, exactAmountA);
+            swapTokensForExactTokens(exactAmountA, swapAmount, item0, address(this));
         }
+
         if (token != token1) {
-            swapTokensForExactTokens(exactAmountB, swapAmount, item1, lpToken);
-        } else {
-            IERC20(token).safeTransferFrom(msg.sender, lpToken, exactAmountB);
+            swapTokensForExactTokens(exactAmountB, swapAmount, item1, address(this));
         }
+    
+        if(token != token0) {
+            IERC20(token0).safeTransfer(lpToken, exactAmountA);
+        } else {
+            IERC20(token0).safeTransferFrom(msg.sender, lpToken, exactAmountA);
+        }
+
+        if (token != token1) {
+            IERC20(token1).safeTransfer(lpToken, exactAmountB);
+        } else {
+            IERC20(token1).safeTransferFrom(msg.sender, lpToken, exactAmountB);
+        }        
         // add liquidity
         liquidity = IUniswapV2Pair(lpToken).mint(to);
     }
