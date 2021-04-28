@@ -21,10 +21,10 @@ contract AutoInvestmentRouter {
 
     function deposit(
         address automoulde,
-        address pair,
         uint256 amount,
         address to
     ) external {
+        address pair = AutoInvestment(automoulde).lpToken();
         TransferHelper.safeTransferFrom(pair, msg.sender, automoulde, amount);
         AutoInvestment(automoulde).deposit(to);
     }
