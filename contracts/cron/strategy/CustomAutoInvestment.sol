@@ -71,8 +71,8 @@ contract CustomAutoInvestment is AdminableInit {
         overlapRate = _overlapRate;
     }
     
-    function pairFor(address tokenA, address tokenB) internal view returns (address pair){
-        pair = IMdexFactory(factory).getPair(tokenA, tokenB);
+    function pairFor(address tokenA, address tokenB) internal view returns (address newPair){
+        newPair = IMdexFactory(factory).getPair(tokenA, tokenB);
     }
     function swapTokensForExactTokens(
         address tokenA,
@@ -80,7 +80,7 @@ contract CustomAutoInvestment is AdminableInit {
         uint amountOut,
         address to
     ) public {
-        ISwapStorage.PathItem memory item0 = ISwapStorage(swapStore).pathFor(tokenA, tokenB);
+        ISwapStorage.PathItem memory item0 = swapStore.pathFor(tokenA, tokenB);
         uint256[] memory amounts = 
             SwapLibrary.swapTokensForExactTokens(amountOut,uint256(-1),item0,to);
 
@@ -101,9 +101,10 @@ contract CustomAutoInvestment is AdminableInit {
             address newPair = pairFor(tokens[0], tokens[1]);
             require(pair == newPair, "wrong pid");
             (amountADesired, amountBDesired) = 
-                tokens[0] == IMdexPair(pair).token0() ? (amountsDesired[0], amountsDesired[1]) : (amountsDesired[1], amountsDesired[0]);
+                tokens[0] == IMdexPair(pair).token0() ? (amountsDesired[0], amountsDesired[1]) 
+                    : (amountsDesired[1], amountsDesired[0]);
             (,,lpAmount) = LiquidityLibrary.addLiquidity(pair, amountADesired, amountBDesired, 0, 0, address(this));
-        }        
+        }      
         // uint256 lpBalance = IERC20(pair).balanceOf(address(this));
         deposite(lpAmount);
         return lpAmount;
@@ -172,7 +173,6 @@ contract CustomAutoInvestment is AdminableInit {
         if (newInvestAmount > 0 ){
             addNewInvest(newInvestAmount);
         }
-
     }
 
     function claimTo() public {

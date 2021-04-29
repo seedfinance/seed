@@ -2,7 +2,7 @@
 const {network, ethers, getNamedAccounts} = require("hardhat")
 var chai = require("chai");
 const chaiAsPromised = require("chai-as-promised");
-const {AdminStorageDeploy, SwapStorageDeploy} = require("./utils/utils.js")
+const {AdminStorageDeploy, SwapStorageDeploy, CustomStorageDeploy} = require("./utils/utils.js")
 const { expandTo18Decimals,expandToNormal } =require('./utils/bignumber');
 
 
@@ -21,7 +21,7 @@ const eth_token0 = "0x64ff637fb478863b7468bc97d30a5bf3a428a1fd"; // eth
 const usdt_token1 = "0xa71edc38d189767582c38a3145b5873052c3e47a"; // usdt
 const mdx_usdt = "0x615E6285c5944540fd8bd921c9c8c56739Fd1E13";
 const mdx_eth = "0xb55569893b397324c0d048c9709F40c23445540E";
-describe("CustomAutoInvestment", () => {
+describe("CronCustomAutoInvestment", () => {
     before(async function () {
         this.signers = await ethers.getSigners()
         this.alice = this.signers[0]
@@ -40,6 +40,14 @@ describe("CustomAutoInvestment", () => {
 
         this.adminStorage = await AdminStorageDeploy(this.bob.address)
         this.swapStorage = await SwapStorageDeploy(this.adminStorage.address)
+        this.customStorage = await CustomStorageDeploy(
+            this.adminStorage.address,
+            tokenReward,
+            pool,
+            eth_usdt_pid,
+            eth_usdt,
+            factory
+        )
         // swap path
         await this.swapStorage.connect(this.bob).setPath(mdx,eth_token0,[mdx,usdt_token1,eth_token0],[mdx_usdt,eth_usdt])
         await this.swapStorage.connect(this.bob).setPath(mdx,usdt_token1,[mdx,usdt_token1],[mdx_usdt])
@@ -49,18 +57,14 @@ describe("CustomAutoInvestment", () => {
 
     beforeEach(async function () {
         // 部署 AutoInvestment 合约
-        this.CronAutoInvestment = await ethers.getContractFactory("CustomAutoInvestment")
+        this.CronAutoInvestment = await ethers.getContractFactory("CronCustomAutoInvestment")
 
         this.autoInvestment = await this.CronAutoInvestment.deploy();
         await this.autoInvestment.deployed()
         let tx = await this.autoInvestment.connect(this.bob).initialize(
             this.adminStorage.address,
             this.swapStorage.address,
-            tokenReward,
-            pool,
-            eth_usdt_pid,
-            eth_usdt,
-            factory,
+            this.customStorage.address,
             this.dave.address,
             this.dave.address,
             expandTo18Decimals(1)
@@ -70,17 +74,10 @@ describe("CustomAutoInvestment", () => {
     })
 
     it("should set correct contant variables", async function () {
-        expect(await this.autoInvestment.tokenReward()).to.equal(tokenReward);
-        expect(await this.autoInvestment.pool()).to.equal(pool);
-        expect(await this.autoInvestment.pair()).to.equal(eth_usdt);
-        expect(await this.autoInvestment.factory()).to.equal(factory);
         expect(await this.autoInvestment.storeAdmin()).to.equal(this.adminStorage.address);
         expect(await this.autoInvestment.overlapRate()).to.equal(expandTo18Decimals(1));
     })
     it("should set correct token address", async function () {
-        // set tokenRework
-        tx = await this.autoInvestment.connect(this.bob).setTokenReward(eth_usdt)
-        expect(await this.autoInvestment.tokenReward()).to.equal(eth_usdt)
         tx = await this.autoInvestment.connect(this.bob).setNewInvest(eth_usdt)
         expect(await this.autoInvestment.newInvest()).to.equal(eth_usdt)
         tx = await this.autoInvestment.connect(this.bob).setOverlapRate(expandTo18Decimals(2))
@@ -247,7 +244,6 @@ describe("CustomAutoInvestment", () => {
             console.log("liqudity remove eth",ethBalance.toBigInt(),ethNewBalance.toBigInt())
             expect(liquidityBalance).to.above(liquidityOldBalance)
             expect(ethNewBalance).to.be.above(ethBalance)
-
         })
         it("claim to receiver", async function () {
             const receiverOldBalance = await this.MDX.balanceOf(this.dave.address)
