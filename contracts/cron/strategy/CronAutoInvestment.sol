@@ -6,8 +6,8 @@ pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
-import "./CustomStorage.sol";
-// import "../../interface/ICustomStorage.sol"
+// import "./CustomStorage.sol";
+import "../../interface/ICustomStorage.sol";
 import "../../admin/AdminableInit.sol";
 import "../../interface/IMdexChef.sol";
 import "../../interface/IMdexFactory.sol";
@@ -29,7 +29,7 @@ contract CronCustomAutoInvestment is AdminableInit {
     // uint256 public pid;
     // address public pair; // mdex pair, Address of LP contract address.
     // address public factory; // mdx factory
-    CustomStorage customStore; // custom storage
+    ICustomStorage customStore; // custom storage
     ISwapStorage swapStore; // swap stroage
 
     address public receiver; // receiver address
@@ -48,7 +48,7 @@ contract CronCustomAutoInvestment is AdminableInit {
     )  public {
         AdminableInit.initializeAdmin(_adminStore);
         swapStore = ISwapStorage(_swapStore);
-        customStore = CustomStorage(_customStore);
+        customStore = ICustomStorage(_customStore);
         receiver = _receiver;
         newInvest = _newInvest;
         overlapRate = _overlapRate;
@@ -168,7 +168,7 @@ contract CronCustomAutoInvestment is AdminableInit {
     function doHardWork() public {
         address pool = customStore.getPool();
         uint256 pid = customStore.getPid();
-        address tokenReward = customStore.tokenReward();
+        address tokenReward = customStore.getTokenReward();
         // claim inveset
         IMdexChef(pool).withdraw(pid, 0);
         uint256 swapAmount = IERC20(tokenReward).balanceOf(address(this));

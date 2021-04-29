@@ -13,7 +13,7 @@ contract CustomableInit is Initializable {
 
     constructor() {}
 
-    function initializeLiquidity(address _store) internal {
+    function initializeCustom(address _store) internal {
         storeCustom = CustomStorage(_store);
     }
 }
