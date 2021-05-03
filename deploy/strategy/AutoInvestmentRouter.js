@@ -12,7 +12,8 @@ module.exports = async function ({
     let deployResult = await deploy('AutoInvestmentRouter', {
         from: deployer.address,
         args:[
-        ]
+        ],
+        log: true
     });
     console.log('AutoInvestmentRouter', deployResult.address)
 

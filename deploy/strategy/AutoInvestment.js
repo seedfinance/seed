@@ -18,8 +18,8 @@ module.exports = async function ({
             swapStorage.address,
             MDX.MasterChef,
             TOKEN.MDX,
-            MDX.Pair.HBTC_USDT,
-            MDX.Pid.HBTC_USDT
+            MDX.Pair.MDX_USDT,
+            MDX.Pid.MDX_USDT,
         ],
         log: true,
     });

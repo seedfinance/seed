@@ -11,8 +11,10 @@ module.exports.MDX = {
         USDT_HBTC: '0xFBe7b74623e4be82279027a286fa3A5b5280F77c',
     },
     Pid: {
-        HBTC_USDT: 8,
-        USDT_HBTC: 8,
+        HBTC_USDT: '8',
+        USDT_HBTC: '8',
+        MDX_USDT: '16',
+        USDT_MDX: '16',
     }
 }
 module.exports.TOKEN = {
