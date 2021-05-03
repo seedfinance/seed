@@ -123,6 +123,7 @@ module.exports = {
             live: true,
             saveDeployments: true,
             tags: ["test", "local"],
+            chainID: 999,
         }
     },
     solidity: {

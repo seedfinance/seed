@@ -19,7 +19,9 @@ module.exports = async function ({
     let mdxBalance = await mdxERC20.balanceOf(richAddress);
     console.log("mdxBalance: ", mdxBalance.toString());
     //创建流动性
-    let useAddress = '0xC65d28C1C62AB415F4b99f48Cb856ACEF85F7138'
+    //let useAddress = '0xC65d28C1C62AB415F4b99f48Cb856ACEF85F7138'
+    const { deployer, admin } = await ethers.getNamedSigners();
+    let useAddress = admin.address;
     let useMdx = '389448259003992484544041';
     let useUsdt = '1816834362892451549735077';
     await usdtERC20.connect(richAccount).approve(MDX.Router, useUsdt);

@@ -7,6 +7,7 @@ import '@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol';
 import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/math/SafeMath.sol';
+import 'hardhat/console.sol';
 
 library SwapLibraryInternal {
     using SafeMath for uint256;
@@ -206,26 +207,17 @@ library SwapLibraryInternal {
         }
 
         (exactAmountA, exactAmountB) = calcAddLiquidity(lpToken, forecastTokenA, forecastTokenB, 0, 0);
-
         if (token != token0) {
             swapTokensForExactTokens(exactAmountA, swapAmount, item0, address(this));
         }
-
         if (token != token1) {
             swapTokensForExactTokens(exactAmountB, swapAmount, item1, address(this));
         }
     
-        if(token != token0) {
-            IERC20(token0).safeTransfer(lpToken, exactAmountA);
-        } else {
-            IERC20(token0).safeTransferFrom(msg.sender, lpToken, exactAmountA);
-        }
+        IERC20(token0).safeTransfer(lpToken, exactAmountA);
 
-        if (token != token1) {
-            IERC20(token1).safeTransfer(lpToken, exactAmountB);
-        } else {
-            IERC20(token1).safeTransferFrom(msg.sender, lpToken, exactAmountB);
-        }
+        IERC20(token1).safeTransfer(lpToken, exactAmountB);
+
         // add liquidity
         liquidity = IUniswapV2Pair(lpToken).mint(to);
     }
