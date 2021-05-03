@@ -33,14 +33,16 @@ module.exports = async function ({
     let mdxUsdtPairBalance = await mdxUsdtPairERC20.balanceOf(useAddress);
     console.log("mdxUsdtPairBalance: ", mdxUsdtPairBalance.toString());
     let autoInvestment = await ethers.getContract('AutoInvestment');
+    let autoInvestmentRouter = await ethers.getContract('AutoInvestmentRouter');
     console.log("contract info: ");
     let info = {
         MDX : TOKEN.MDX,
         USDT: TOKEN.USDT,
         POOL: autoInvestment.address,
+        ROUTER: autoInvestmentRouter.address,
     }
     console.dir(info);
 };
 
 module.exports.tags = ['TestSetting'];
-module.exports.dependencies = ['SwapStorage' , 'AutoInvestment'];
+module.exports.dependencies = ['SwapStorage' , 'AutoInvestment', 'AutoInvestmentRouter'];
