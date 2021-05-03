@@ -1,3 +1,4 @@
+const {TOKEN, MDX} = require('../config/address.js');
 module.exports = async function ({
     ethers,
     getNamedAccounts,
@@ -7,25 +8,20 @@ module.exports = async function ({
 }) {
     const {deploy} = deployments;
     const { receiver } = await getNamedAccounts();
-    const { MDXChef, MDX, Factory, HBTC, USDT } = await getNamedAccounts();
     const { deployer, admin } = await ethers.getNamedSigners();
     let adminStorage = await ethers.getContract('AdminStorage');
     let swapStorage = await ethers.getContract('SwapStorage');
-    //部署LPBuilder合约
-    let factory = await ethers.getContractAt("IMdexFactory", Factory)
-    let chef = await ethers.getContractAt("IMdexChef", MDXChef)
-    const HBTC_USDT = await factory.getPair(HBTC, USDT)
-    const pid = await chef.LpOfPid(HBTC_USDT)
     let deployResult = await deploy('AutoInvestment', {
         from: deployer.address,
         args:[
             adminStorage.address,
             swapStorage.address,
-            MDXChef,
-            MDX,
-            HBTC_USDT,
-            pid
-        ]
+            MDX.MasterChef,
+            TOKEN.MDX,
+            MDX.Pair.HBTC_USDT,
+            MDX.Pid.HBTC_USDT
+        ],
+        log: true,
     });
 };
 

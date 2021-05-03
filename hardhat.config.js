@@ -115,8 +115,9 @@ module.exports = {
             chainId: 128,
         },
         hardhat: {
+            host: '0.0.0.0',
             forking: {
-                enabled: process.env.FORKING === "true",
+                enabled: true,//process.env.FORKING === "true",
                 url: `https://http-mainnet-node.huobichain.com`,
             },
             live: true,

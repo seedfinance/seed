@@ -1,3 +1,4 @@
+const {TOKEN, MDX} = require('../config/address.js');
 module.exports = async function ({
     ethers,
     getNamedAccounts,
@@ -6,34 +7,41 @@ module.exports = async function ({
     getUnnamedAccounts,
 }) {
     const {deploy} = deployments;
-    const { receiver } = await getNamedAccounts();
-    const { MDXChef, MDX, Factory, HBTC, USDT } = await getNamedAccounts();
     const { deployer, admin } = await ethers.getNamedSigners();
-    let factory = await ethers.getContractAt("IMdexFactory", Factory)
-    // const HBTC_USDT = await factory.getPair(HBTC, USDT)
-    const MDX_USDT = await factory.getPair(MDX, USDT)
-    const MDX_HBTC = await factory.getPair(MDX, USDT)
     let adminStorage = await ethers.getContract('AdminStorage');
     let deployResult = await deploy('SwapStorage', {
         from: deployer.address,
+        log: true,
     });
     let swapStorage = await ethers.getContract('SwapStorage')
     await swapStorage.initialize(adminStorage.address)
-    // console.log('swapStorage',swapStorage.address)
 
-    //settings test
     swapStorage.connect(admin).setPath(
-        MDX,
-        USDT,
-        [MDX, USDT],
-        [MDX_USDT]
-      );
-      swapStorage.connect(admin).setPath(
-        MDX,
-        HBTC,
-        [MDX, HBTC],
-        [MDX_HBTC]
-      );
+        TOKEN.MDX,
+        TOKEN.USDT,
+        [TOKEN.MDX, TOKEN.USDT],
+        [MDX.Pair.MDX_USDT]
+    );
+    console.log("set swap path: MDX<->USDT");
+    console.dir({
+        from: TOKEN.MDX,
+        to: TOKEN.USDT,
+        path: [TOKEN.MDX, TOKEN.USDT],
+        pair: [MDX.Pair.MDX_USDT],
+    });
+    swapStorage.connect(admin).setPath(
+        TOKEN.MDX,
+        TOKEN.HBTC,
+        [TOKEN.MDX, TOKEN.HBTC],
+        [MDX.Pair.MDX_HBTC]
+    );
+    console.log("set swap path: MDX<->HBTC");
+    console.dir({
+        from: TOKEN.MDX,
+        to: TOKEN.HBTC,
+        path: [TOKEN.MDX, TOKEN.HBTC],
+        pair: [MDX.Pair.MDX_HBTC],
+    });
 };
 
 module.exports.tags = ['SwapStorage'];
