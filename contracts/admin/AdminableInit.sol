@@ -6,17 +6,17 @@ import '@openzeppelin/contracts/proxy/Initializable.sol';
 import './AdminStorage.sol';
 
 contract AdminableInit is Initializable {
-    AdminStorage public storeAdmin;
+    AdminStorage public adminStore;
 
     constructor() {}
 
     function initializeAdmin(address _store) internal {
         require(_store != address(0), "new storage shouldn't be empty");
-        storeAdmin = AdminStorage(_store);
+        adminStore = AdminStorage(_store);
     }
 
     modifier onlyAdmin() {
-        require(storeAdmin.isAdmin(msg.sender), 'Not admin');
+        require(adminStore.isAdmin(msg.sender), 'Not admin');
         _;
     }
 }

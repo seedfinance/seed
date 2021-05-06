@@ -8,12 +8,16 @@ import '../interface/IMdexChef.sol';
 import '../admin/Adminable.sol';
 import '../libraries/TransferHelper.sol';
 import '../libraries/SwapLibraryInternal.sol';
+import 'hardhat/console.sol';
 
 contract AutoInvestment is Adminable, Pausable, ERC20 {
     using SafeMath for uint256;
 
     event Deposit(address indexed forAddr, uint256 share, uint256 amount);
     event Withdraw(address indexed forAddr, uint256 share, uint256 amount);
+    event HardWork(uint256 share, uint256 oldAmount, uint256 newAmount);
+
+    uint256 constant BASE = 10 ** 18;
 
     IMdexChef public chef;
     address public chefToken;
@@ -22,7 +26,8 @@ contract AutoInvestment is Adminable, Pausable, ERC20 {
     ISwapStorage public swapStore;
 
     uint256 totalAmounts;
-    mapping(address => uint256) public depositPrice;
+    mapping(address => uint256) public accountDeposited;      //the last amount the user deposited last time
+    mapping(address => uint256) public lastOperateTimestamp;  //the last timestamp the account operate the contract
 
     constructor(
         address _store,
@@ -56,16 +61,11 @@ contract AutoInvestment is Adminable, Pausable, ERC20 {
         _doHardWork();
 
         uint256 amount = IERC20(lpToken).balanceOf(address(this));
-
         if (amount == 0) {
             return;
         }
-        uint256 share;
-        if (totalSupply() == 0 || totalAmounts == 0) {
-            share = amount;
-        } else {
-            share = amount.mul(totalSupply()).div(totalAmounts);
-        }
+        uint256 exchangeRate = getExchangeRate();
+        uint256 share = amount.mul(BASE).div(exchangeRate);
 
         _mint(forAddr, share);
         _approve(forAddr, msg.sender, allowance(forAddr, msg.sender).add(share));
@@ -74,7 +74,9 @@ contract AutoInvestment is Adminable, Pausable, ERC20 {
 
         IERC20(lpToken).approve(address(chef), amount);
         chef.deposit(chefPid, amount);
-        depositPrice[forAddr] = totalSupply().div(totalAmounts);
+        exchangeRate = getExchangeRate();
+        accountDeposited[forAddr] = balanceOf(forAddr).mul(exchangeRate).div(BASE);
+        lastOperateTimestamp[forAddr] = block.timestamp;
 
         emit Deposit(forAddr, share, amount);
     }
@@ -85,12 +87,13 @@ contract AutoInvestment is Adminable, Pausable, ERC20 {
             _doHardWork();
         }
         uint256 share = balanceOf(address(this));
-
         if (share == 0) {
             return;
         }
+
+        uint256 exchangeRate = getExchangeRate();
         // calc amount
-        uint256 what = share.mul(totalAmounts).div(totalSupply());
+        uint256 what = share.mul(exchangeRate).div(BASE);
 
         uint256 localAmounts = IERC20(lpToken).balanceOf(address(this));
         if (what > localAmounts) {
@@ -100,6 +103,11 @@ contract AutoInvestment is Adminable, Pausable, ERC20 {
         _burn(address(this), share);
         TransferHelper.safeTransfer(lpToken, to, what);
         totalAmounts = totalAmounts.sub(what);
+
+        exchangeRate = getExchangeRate();
+        accountDeposited[to] = balanceOf(to).mul(exchangeRate).div(BASE);
+        lastOperateTimestamp[to] = block.timestamp;
+
         emit Withdraw(to, share, what);
     }
 
@@ -121,9 +129,26 @@ contract AutoInvestment is Adminable, Pausable, ERC20 {
         if (amount > 0) {
             (, , uint256 lpAmount) = SwapLibraryInternal.swapToLpToken(swapStore, chefToken, lpToken, amount, address(this));
 
+            uint oldTotalAmounts = totalAmounts;
             totalAmounts = totalAmounts.add(lpAmount);
             IERC20(lpToken).approve(address(chef), lpAmount);
             chef.deposit(chefPid, lpAmount);
+            emit HardWork(totalSupply(), oldTotalAmounts, totalAmounts);
         }
+    }
+
+    function getExchangeRate() public view returns (uint256) {
+        if (totalSupply() == 0 || totalAmounts == 0) {
+            return BASE;
+        } else {
+            return totalAmounts.mul(BASE).div(totalSupply());
+        }
+    }
+
+    function accountSnapshot(address account) external view returns (uint256 deposited, uint256 balance, uint256 exchangeRate, uint256 timestamp) {
+        deposited = accountDeposited[account];
+        balance = balanceOf(account);
+        exchangeRate = getExchangeRate();
+        timestamp = lastOperateTimestamp[account];
     }
 }
