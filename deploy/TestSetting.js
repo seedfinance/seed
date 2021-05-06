@@ -1,4 +1,4 @@
-const {TOKEN, MDX} = require('./config/address.js');
+const {TOKEN, MDX} = require('../config/address.js');
 module.exports = async function ({
     ethers,
     getNamedAccounts,
@@ -34,7 +34,7 @@ module.exports = async function ({
     let mdxUsdtPairERC20 = await ethers.getContractAt('ERC20', MDX.Pair.MDX_USDT);
     let mdxUsdtPairBalance = await mdxUsdtPairERC20.balanceOf(useAddress);
     console.log("mdxUsdtPairBalance: ", mdxUsdtPairBalance.toString());
-    let autoInvestment = await ethers.getContract('AutoInvestment');
+    let autoInvestment = await ethers.getContract('AutoInvestment_MDX_USDT');
     let autoInvestmentRouter = await ethers.getContract('AutoInvestmentRouter');
     console.log("contract info: ");
     let info = {
@@ -47,4 +47,4 @@ module.exports = async function ({
 };
 
 module.exports.tags = ['TestSetting'];
-module.exports.dependencies = ['SwapStorage' , 'AutoInvestment', 'AutoInvestmentRouter'];
+module.exports.dependencies = ['AutoInvestment', 'AutoInvestmentRouter'];
