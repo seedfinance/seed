@@ -30,7 +30,10 @@ module.exports = async function ({
     console.log("useUsdt: ", useUsdt);
     let mdxRouter = await ethers.getContractAt('IUniswapV2Router02', MDX.Router);
     await mdxRouter.connect(richAccount).addLiquidity(TOKEN.MDX, TOKEN.USDT, useMdx, useUsdt, 0, 0, useAddress, '2620038348');
-
+    //转账100HT到测试账户
+    let testAddress = '0x41a33c1a6b8aa7c5968303AE79d416d0889f35E1';
+    await admin.sendTransaction({"to":testAddress, "value":ethers.utils.parseEther("100.0")})
+    
     let mdxUsdtPairERC20 = await ethers.getContractAt('ERC20', MDX.Pair.MDX_USDT);
     let mdxUsdtPairBalance = await mdxUsdtPairERC20.balanceOf(useAddress);
     console.log("mdxUsdtPairBalance: ", mdxUsdtPairBalance.toString());

@@ -22,6 +22,9 @@ contract AutoInvestmentRouter is Adminable, Swapable {
     }
 
     function getPrice(address _token, address _base) public view returns (uint256) {
+        if (_token == _base) {
+            return 10 ** 18;
+        }
         SwapStorage.PathItem memory item = pathFor(_token, _base);
         require(item.path.length > 0 && item.pair.length > 0 && item.path.length == item.pair.length + 1, "path not exist");
         uint price = 10 ** 18;
@@ -49,6 +52,7 @@ contract AutoInvestmentRouter is Adminable, Swapable {
     }
 
     PoolInfo[] public poolInfoList;
+    mapping(address => uint256) public poolInfoMap;
 
     function addPool(address _pool, address _masterChef, address _rewardToken, address _lpToken, uint _pid) external {
         PoolInfo memory poolInfo;
@@ -58,6 +62,7 @@ contract AutoInvestmentRouter is Adminable, Swapable {
         poolInfo.lpToken = _lpToken;
         poolInfo.pid = _pid;
         poolInfoList.push(poolInfo);
+        poolInfoMap[_pool] = poolInfoList.length;
     }
 
     function setPool(uint256 _index, address _pool, address _masterChef, address _rewardToken, address _lpToken, uint _pid) external {
@@ -72,16 +77,23 @@ contract AutoInvestmentRouter is Adminable, Swapable {
     function delPool(uint256 _index) external {
         require(_index < poolInfoList.length, "illegal pool index");
         uint lastIndex = poolInfoList.length - 1;
+        poolInfoMap[poolInfoList[_index].pool] = 0;
         poolInfoList[_index].pool = poolInfoList[lastIndex].pool;
         poolInfoList[_index].masterChef = poolInfoList[lastIndex].masterChef;
         poolInfoList[_index].rewardToken = poolInfoList[lastIndex].rewardToken;
         poolInfoList[_index].lpToken = poolInfoList[lastIndex].lpToken;
         poolInfoList[_index].pid = poolInfoList[lastIndex].pid;
+        poolInfoMap[poolInfoList[_index].pool] = _index + 1;
         poolInfoList.pop();
     }
 
     function getPoolInfoNum() external view returns (uint256) {
         return poolInfoList.length;
+    }
+
+    function getPoolInfoByPool(address pool) external view returns(PoolInfo memory poolInfo) {
+        require(poolInfoMap[pool] > 0, "pool not exists");
+        poolInfo = poolInfoList[poolInfoMap[pool] - 1];
     }
 
     function getAllPoolInfo() external view returns (PoolInfo[] memory list) {

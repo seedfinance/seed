@@ -67,45 +67,20 @@ module.exports = {
     namedAccounts: {
         deployer: {
             default: 0,
-            128: '0xA8c2f5E3427a94cd8a0BC8d42DdbA574f890E2b4',
+            128: '0x41a33c1a6b8aa7c5968303AE79d416d0889f35E1'
         },
         admin: {
             default: 1,
-            128: '0xA8c2f5E3427a94cd8a0BC8d42DdbA574f890E2b4',
+            128: '0x41a33c1a6b8aa7c5968303AE79d416d0889f35E1',
         },
         caller: {
             default: 2,
-            128: '0xA8c2f5E3427a94cd8a0BC8d42DdbA574f890E2b4',
+            128: '0x41a33c1a6b8aa7c5968303AE79d416d0889f35E1',
         },
         worker: {
             default: 3,
-            128: '0xA8c2f5E3427a94cd8a0BC8d42DdbA574f890E2b4',
+            128: '0x41a33c1a6b8aa7c5968303AE79d416d0889f35E1',
         },
-        receiver: {
-            default: 4,
-            128: '0xA8c2f5E3427a94cd8a0BC8d42DdbA574f890E2b4',
-        },
-        MDX:{
-            default:'0x25D2e80cB6B86881Fd7e07dd263Fb79f4AbE033c'
-        },
-        MDXChef:{
-            default: '0xFB03e11D93632D97a8981158A632Dd5986F5E909'
-        },
-        USDT:{
-            default: '0xa71edc38d189767582c38a3145b5873052c3e47a'
-        },
-        HBTC:{
-            default: '0x66a79d23e58475d2738179ca52cd0b41d73f0bea'
-        },
-        WHT:{
-            default: '0x5545153ccfca01fbd7dd11c0b23ba694d9509a6f'
-        },
-        Factory:{
-            default: '0xb0b670fc1f7724119963018db0bfa86adb22d941'
-        },
-        Router:{
-            default: '0xED7d5F38C79115ca12fe6C0041abb22F0A06C300'
-        }
     },
     networks: {
         mainnet: {

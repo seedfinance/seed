@@ -13,7 +13,7 @@ package-lock.json
 #Hardhat files
 cache
 artifacts
-deployments
+deployments/localhost
 .vscode
 .env
 abi
