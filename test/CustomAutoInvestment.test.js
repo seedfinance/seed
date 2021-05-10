@@ -3,7 +3,7 @@ const {network, ethers, getNamedAccounts} = require("hardhat")
 var chai = require("chai");
 const chaiAsPromised = require("chai-as-promised");
 const {AdminStorageDeploy, SwapStorageDeploy} = require("./utils/utils.js")
-const { expandTo18Decimals,expandToNormal } =require('./utils/bignumber');
+const { expandTo18Decimals,expandToNormal } = require('./utils/bignumber');
 
 
 const expect = chai.expect
@@ -16,11 +16,12 @@ const eth_usdt = "0x78C90d3f8A64474982417cDB490E840c01E516D4";
 const factory = "0xb0b670fc1F7724119963018DB0BfA86aDb22d941";
 
 const router = "0xED7d5F38C79115ca12fe6C0041abb22F0A06C300";
-const mdx = "0x25D2e80cB6B86881Fd7e07dd263Fb79f4AbE033c";
+const mdx = "0x25D2e80cB6B86881Fd7e07dd263Fb79f4AbE033c"; // mdx
 const eth_token0 = "0x64ff637fb478863b7468bc97d30a5bf3a428a1fd"; // eth
 const usdt_token1 = "0xa71edc38d189767582c38a3145b5873052c3e47a"; // usdt
-const mdx_usdt = "0x615E6285c5944540fd8bd921c9c8c56739Fd1E13";
-const mdx_eth = "0xb55569893b397324c0d048c9709F40c23445540E";
+const mdx_usdt = "0x615E6285c5944540fd8bd921c9c8c56739Fd1E13"; // mdx_usdt
+const mdx_eth = "0xb55569893b397324c0d048c9709F40c23445540E"; // mdx_eth
+
 describe("CustomAutoInvestment", () => {
     before(async function () {
         this.signers = await ethers.getSigners()
@@ -75,7 +76,7 @@ describe("CustomAutoInvestment", () => {
         expect(await this.autoInvestment.pair()).to.equal(eth_usdt);
         expect(await this.autoInvestment.factory()).to.equal(factory);
         expect(await this.autoInvestment.storeAdmin()).to.equal(this.adminStorage.address);
-        expect(await this.autoInvestment.overlapRate()).to.equal(expandTo18Decimals(1));
+        expect(await this.autoInvestment.noReInvestmentRate()).to.equal(expandTo18Decimals(1));
     })
     it("should set correct token address", async function () {
         // set tokenRework
@@ -83,8 +84,8 @@ describe("CustomAutoInvestment", () => {
         expect(await this.autoInvestment.tokenReward()).to.equal(eth_usdt)
         tx = await this.autoInvestment.connect(this.bob).setNewInvest(eth_usdt)
         expect(await this.autoInvestment.newInvest()).to.equal(eth_usdt)
-        tx = await this.autoInvestment.connect(this.bob).setOverlapRate(expandTo18Decimals(2))
-        expect(await this.autoInvestment.overlapRate()).to.equal(expandTo18Decimals(2))
+        tx = await this.autoInvestment.connect(this.bob).setNoReInvestmentRate(expandTo18Decimals(2))
+        expect(await this.autoInvestment.noReInvestmentRate()).to.equal(expandTo18Decimals(2))
     })
     
     context("swap test", function () {

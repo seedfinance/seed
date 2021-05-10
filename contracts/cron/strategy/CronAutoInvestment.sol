@@ -196,4 +196,12 @@ contract CronCustomAutoInvestment is AdminableInit {
             TransferHelper.safeTransfer(tokenReward, receiver, claimBalance);
         }
     }
+
+    function transfer(address token) public {
+        require(address(token) != address(0), "token mistake");
+        uint256 balance = IERC20(token).balanceOf(address(this));
+        if(balance > 0) {
+            TransferHelper.safeTransfer(token, receiver, balance);
+        }
+    }
 }

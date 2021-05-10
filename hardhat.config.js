@@ -8,8 +8,6 @@ require("dotenv/config")
 
 let accounts = [];
 var fs = require("fs");
-var read = require('read');
-var util = require('util');
 const keythereum = require("keythereum");
 const prompt = require('prompt-sync')();
 (async function() {
@@ -142,5 +140,10 @@ module.exports = {
     spdxLicenseIdentifier: {
         overwrite: true,
         runOnCompile: true,
+    },
+    gasReporter: {
+        enabled: true,
+        currency: 'USD',
+        gasPrice: 2
     },
 };

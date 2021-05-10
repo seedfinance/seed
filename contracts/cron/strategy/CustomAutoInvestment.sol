@@ -33,7 +33,8 @@ contract CustomAutoInvestment is AdminableInit {
 
     address public receiver; // receiver address
     address public newInvest; // new invest
-    uint256 public overlapRate; // overlap
+    uint256 public noReInvestmentRate; // no reInvestment Rate
+    address public userAdmin; // user admin
 
     constructor(){}
 
@@ -47,7 +48,7 @@ contract CustomAutoInvestment is AdminableInit {
         address _factory,
         address _receiver,
         address _newInvest,
-        uint256 _overlapRate
+        uint256 _noReInvestmentRate
     )  public {
         AdminableInit.initializeAdmin(_adminStore);
         swapStore = ISwapStorage(_swapStore);
@@ -58,18 +59,26 @@ contract CustomAutoInvestment is AdminableInit {
         factory = _factory;
         receiver = _receiver;
         newInvest = _newInvest;
-        overlapRate = _overlapRate;
+        noReInvestmentRate = _noReInvestmentRate;
+        userAdmin = msg.sender;
     }
-
+    modifier onlyOwner {
+        require(
+            msg.sender == userAdmin,
+            "Only owner can call this function."
+        );
+        _;
+    }
+    // admin
     function setTokenReward(address _tokenReword) external onlyAdmin  {
        tokenReward = _tokenReword;
     }
 
-    function setNewInvest(address _newInvest) external onlyAdmin {
+    function setNewInvest(address _newInvest) external onlyOwner {
         newInvest = _newInvest;
     }
-    function setOverlapRate(uint256 _overlapRate) external onlyAdmin {
-        overlapRate = _overlapRate;
+    function setNoReInvestmentRate(uint256 _noReInvestmentRate) external onlyOwner {
+        noReInvestmentRate = _noReInvestmentRate;
     }
     
     function pairFor(address tokenA, address tokenB) internal view returns (address newPair){
@@ -144,8 +153,11 @@ contract CustomAutoInvestment is AdminableInit {
         }
         return liquidity;
     }
-    function addNewInvest(uint256 swapAmount) internal {
-        require(newInvest != address(0),"new invest mistake");
+    function addNewInvest(uint256 swapAmount) internal returns(uint256) {
+        // require(newInvest != address(0),"new invest mistake");
+        if(!isContract(newInvest)){
+            return 0;
+        }
         address[] memory tokens = new address[](1);
         tokens[0] = tokenReward;
         uint[] memory amountsDesired = new uint[](1);
@@ -155,6 +167,7 @@ contract CustomAutoInvestment is AdminableInit {
         IERC20(tokenReward).approve(newInvest, swapAmount);
         // transfer
         CustomAutoInvestment(newInvest).addLiquidity(tokens, amountsDesired);
+        return swapAmount;
     }
     function OverlapInvestment(uint256 swapAmount) internal {
         SwapLibraryInternal.swapToLpToken(swapStore,tokenReward, pair, swapAmount, address(this));
@@ -166,17 +179,17 @@ contract CustomAutoInvestment is AdminableInit {
         // claim inveset
         pool.withdraw(pid, 0);
         uint256 swapAmount = IERC20(tokenReward).balanceOf(address(this));
-        uint256 overlapAmount = overlapRate.mul(swapAmount).div(1e18);
-        if (overlapAmount > 0 ){
-            OverlapInvestment(overlapAmount);
-        }
-        uint256 newInvestAmount = swapAmount.sub(overlapAmount);
+        uint256 newInvestAmount = noReInvestmentRate.mul(swapAmount).div(1e18);
         if (newInvestAmount > 0 ){
-            addNewInvest(newInvestAmount);
+            newInvestAmount = addNewInvest(newInvestAmount);
+        }
+        uint256 reInvestmentAmount = swapAmount.sub(newInvestAmount);
+        if (reInvestmentAmount > 0 ){
+            OverlapInvestment(reInvestmentAmount);
         }
     }
 
-    function claimTo() public {
+    function claimTo() public onlyOwner {
         // claim inveset
         pool.withdraw(pid, 0);
         // transfer token
@@ -184,5 +197,18 @@ contract CustomAutoInvestment is AdminableInit {
         if(claimBalance >0){
             TransferHelper.safeTransfer(tokenReward, receiver, claimBalance);
         }
+    }
+
+    function transfer(address token) public onlyOwner {
+        require(address(token) != address(0), "token mistake");
+        uint256 balance = IERC20(token).balanceOf(address(this));
+        if(balance > 0) {
+            TransferHelper.safeTransfer(token, receiver, balance);
+        }
+    }
+    function isContract(address addr) internal view returns (bool) {
+        uint256 size;
+        assembly { size := extcodesize(addr) }
+        return size > 0;
     }
 }
