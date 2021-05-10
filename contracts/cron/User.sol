@@ -9,6 +9,7 @@ import '../admin/AdminableInit.sol';
 import '../interface/IStrategy.sol';
 import '@openzeppelin/contracts/math/SafeMath.sol';
 import '@openzeppelin/contracts/token/ERC20/ERC20.sol';
+import '@openzeppelin/contracts/proxy/UpgradeableProxy.sol';
 
 contract User is AdminableInit, UserManagerableInit {
     using SafeMath for uint256;
@@ -28,12 +29,17 @@ contract User is AdminableInit, UserManagerableInit {
         UserManagerableInit.initialize(_userManagerStorage);
     }
 
-    function createStrategy(uint256 index, bytes memory data) external {
-        /*
-        require(index < factory.getStrategyNum(), "illegal index");
-        BaseProxy proxy = new BaseProxy(address(store), factory.getStrategy(index), false);
-        IStrategy(address(proxy)).initialize(address(store), data);
+    function getStrategyNum() external view returns(uint) {
+        return strategys.length;
+    }
+
+    function getStrategy(uint _id) external view returns(address) {
+        return strategys[_id - 1];
+    }
+
+    function createStrategy(uint256 _index, bytes memory data) external {
+        require(factory.strategyExist(_index), "strategy not exist");
+        UpgradeableProxy proxy = new UpgradeableProxy(factory.getStrategyById(_index), data);
         strategys.push(address(proxy));
-        */
     }
 }

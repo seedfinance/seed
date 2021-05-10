@@ -8,7 +8,6 @@ describe("CronFactory", () => {
       "UserManagerStorage"
     );
     this.signers = await ethers.getSigners();
-    console.log(this.signers);
     this.admin = this.signers[0];
   });
 
@@ -28,23 +27,24 @@ describe("CronFactory", () => {
     );
     this.factory.setUserManagerStorage(this.admin.address);
     expect(await this.factory.userManagerStorage()).equal(this.admin.address);
-    let num = await this.factory.getStrategyNum();
     expect(await this.factory.getStrategyNum()).to.equal(0);
-    let strategy = this.admin.address;
-    await this.factory.addStrategy(strategy);
-    console.dir(this.factory.getStrategyNum);
-    console.dir(await this.factory.getStrategy);
+    await this.factory.addStrategy(this.admin.address, this.admin.address);
     expect(await this.factory.getStrategyNum()).equal(1);
-    expect(await this.factory.getStrategyByAddress(strategy)).equal(1);
-    expect(await this.factory.getStrategyById("1")).equal(strategy);
+    expect(await this.factory.getStrategyByAddress(this.admin.address)).equal(1);
+    expect(await this.factory.getStrategyById("1")).equal(this.admin.address);
     expect(await this.factory.strategyExist(1)).equal(true);
     await this.factory.delStrategy(1);
     expect(await this.factory.strategyExist(1)).equal(false);
   });
 
-  it("Create User", async function () {});
+  it("Create User", async function () {
+    expect(await this.factory.userExist(this.admin.address)).equal(false);
+    expect(await this.factory.getUserNum()).equal(0);
+    expect(await this.factory.getUser(this.admin.address)).equal('0x0000000000000000000000000000000000000000');
+    this.factory.connect(this.admin).createUser();
+    expect(await this.factory.userExist(this.admin.address)).equal(true);
+    expect(await this.factory.getUserNum()).equal(1);
+    expect(await this.factory.getUser(this.admin.address)).not.equal('0x0000000000000000000000000000000000000000');
+  });
 
-  it("Factory Change Implementation", async function () {});
-
-  it("delegate create", async function () {});
 });

@@ -12,6 +12,7 @@ contract Factory is AdminableInit {
     using SafeMath for uint256;
 
     address[] public strategyList;
+    address[] public strategyStorageList;
     mapping(address => uint256) strategyMap;
     address[] public userList;
     mapping(address => address) public userMap;
@@ -25,9 +26,10 @@ contract Factory is AdminableInit {
         return strategyList.length;
     }
 
-    function addStrategy(address _strategy) external onlyAdmin returns (uint256) {
+    function addStrategy(address _strategy, address _storage) external onlyAdmin returns (uint256) {
         require(strategyMap[_strategy] == 0, 'strategy already exists');
         strategyList.push(_strategy);
+        strategyStorageList.push(_storage);
         strategyMap[_strategy] = strategyList.length;
     }
 
@@ -62,6 +64,10 @@ contract Factory is AdminableInit {
 
     function getUserNum() public view returns (uint256) {
         return userList.length;
+    }
+
+    function getUser(address _user) public view returns (address) {
+        return userMap[_user];
     }
 
     function userExist(address _user) public view returns (bool) {

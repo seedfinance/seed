@@ -65,3 +65,20 @@ module.exports.LPBuilderDeploy = async function (
   await lpBuilder.initialize(adminStorage, liquidityStore, factory, pair);
   return lpBuilder;
 };
+
+module.exports.SwapPath = [
+    //mdx->eth 
+    {
+        from: '0x25D2e80cB6B86881Fd7e07dd263Fb79f4AbE033c',
+        to: '0x64ff637fb478863b7468bc97d30a5bf3a428a1fd',
+        path: ['0x25D2e80cB6B86881Fd7e07dd263Fb79f4AbE033c', '0xa71edc38d189767582c38a3145b5873052c3e47a', '0x64ff637fb478863b7468bc97d30a5bf3a428a1fd'],
+        pair: ['0x615E6285c5944540fd8bd921c9c8c56739Fd1E13', '0x78C90d3f8A64474982417cDB490E840c01E516D4'],
+    },
+    //mdx->usdt
+    {
+        from: '0x25D2e80cB6B86881Fd7e07dd263Fb79f4AbE033c',
+        to: '0xa71edc38d189767582c38a3145b5873052c3e47a',
+        path: ['0x25D2e80cB6B86881Fd7e07dd263Fb79f4AbE033c', '0xa71edc38d189767582c38a3145b5873052c3e47a'],
+        pair: ['0x615E6285c5944540fd8bd921c9c8c56739Fd1E13'],
+    },
+]

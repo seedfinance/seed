@@ -16,6 +16,7 @@ import "../../libraries/TransferHelper.sol";
 import "../../libraries/SwapLibrary.sol";
 import "../../libraries/SwapLibraryInternal.sol";
 import '../../libraries/LiquidityLibrary.sol';
+import 'hardhat/console.sol';
 
 
 contract CustomAutoInvestment is AdminableInit {
