@@ -48,15 +48,6 @@ module.exports = async function ({
             console.dir(util.format("update current Path: [%s->%s]", path.from, path.to));
             console.dir(path);
         }
-        //console.dir(path);
-        /*
-    function setPath(
-        address _from,
-        address _to,
-        address[] calldata _path,
-        address[] calldata _pair
-    ) external onlyAdmin {
-        */
     }
 };
 

@@ -1,6 +1,6 @@
 const {TOKEN, MDX} = require('./address.js');
 
-module.exports.CUSTOMINVESTMENT = [
+module.exports.AUTOINVESTMENT = [
     {
         masterChef: MDX.MasterChef,
         rewardToken: TOKEN.MDX,

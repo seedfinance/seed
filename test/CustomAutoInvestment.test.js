@@ -75,7 +75,6 @@ describe("CustomAutoInvestment", () => {
         expect(await this.autoInvestment.pool()).to.equal(pool);
         expect(await this.autoInvestment.pair()).to.equal(eth_usdt);
         expect(await this.autoInvestment.factory()).to.equal(factory);
-        expect(await this.autoInvestment.storeAdmin()).to.equal(this.adminStorage.address);
         expect(await this.autoInvestment.noReInvestmentRate()).to.equal(expandTo18Decimals(1));
     })
     it("should set correct token address", async function () {

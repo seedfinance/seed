@@ -15,7 +15,7 @@ import "../../interface/IMdexPair.sol";
 import "../../libraries/TransferHelper.sol";
 import "../../libraries/SwapLibrary.sol";
 import "../../libraries/SwapLibraryInternal.sol";
-import '../../libraries/LiquidityLibrary.sol';
+import "../../libraries/LiquidityLibrary.sol";
 import 'hardhat/console.sol';
 
 
@@ -73,7 +73,8 @@ contract CustomAutoInvestment is AdminableInit {
     function setTokenReward(address _tokenReword) external onlyAdmin  {
        tokenReward = _tokenReword;
     }
-
+    
+    // owner
     function setNewInvest(address _newInvest) external onlyOwner {
         newInvest = _newInvest;
     }
@@ -115,7 +116,6 @@ contract CustomAutoInvestment is AdminableInit {
                     : (amountsDesired[1], amountsDesired[0]);
             (,,lpAmount) = LiquidityLibrary.addLiquidity(pair, amountADesired, amountBDesired, 0, 0, address(this));
         }      
-        // uint256 lpBalance = IERC20(pair).balanceOf(address(this));
         deposite(lpAmount);
         return lpAmount;
     }
